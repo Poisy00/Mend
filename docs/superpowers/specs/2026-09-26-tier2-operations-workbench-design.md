@@ -1,12 +1,14 @@
-# Tier 2 Operations Desk — Design Spec
+# Mend — Tier 2 Operations Desk Design Spec
 
 **Date:** 2026-09-26
 
 **Status:** Written for user review
 
+**Repository:** [Poisy00/Mend](https://github.com/Poisy00/Mend)
+
 ## Intent
 
-Build one real, Sites-hosted workspace for Tier 2 cable and internet support agents. An agent should be able to see the next useful item immediately, finish a FollowBack or RCC task during a call, and trust that saved work is private and recoverable. The interface should feel calm and carefully made over an eight-hour shift. Success means both existing workflows work in the new site, with a coherent visual system and no mock data or fake interactions.
+Build **Mend**, one real, Sites-hosted workspace for Tier 2 cable and internet support agents. An agent should be able to see the next useful item immediately, finish a FollowBack or RCC task during a call, and trust that saved work is private and recoverable. The interface should feel calm and carefully made over an eight-hour shift. Success means both existing workflows work in the new site, with a coherent visual system and no mock data or fake interactions.
 
 The new site starts from a fresh **Sites Vinext starter**. The two existing Sites are read-only references for rules and tests, and remain live and unchanged. The new site has fresh accounts and data; there is no import from either old Site. The output is a full multi-route web application, not a standalone HTML file. An agent can work directly in either workflow; saving a result as a Case is optional afterward.
 
@@ -16,8 +18,8 @@ This spec incorporates the approved UI direction and the requested replacement o
 
 The latest user decisions in this spec override the original single-file prototype brief. Verified business rules come from these source snapshots:
 
-- FollowBack: `C:\Users\DELL\Documents\ChatGPT\5alto-reference\followback-source`, commit `74a2a8faddf1eca31284fcc05f420e32ccfa7dd1`.
-- RCC Dispatch: `C:\Users\DELL\Documents\ChatGPT\site-source-review\rcc`, commit `67a3b28c4f1c4d9e0548b1a946e2a7bf9636d494`.
+- FollowBack source checkout, commit `74a2a8faddf1eca31284fcc05f420e32ccfa7dd1`.
+- RCC Dispatch source checkout, commit `67a3b28c4f1c4d9e0548b1a946e2a7bf9636d494`.
 
 Rebuild the interface in the starter and port the proven calculation, validation, email-generation, privacy, and authentication behavior into focused modules. Do not copy either old visual system wholesale. Keep workflow rules independently testable, with the page components responsible for presentation and interaction rather than date or routing decisions.
 
@@ -106,6 +108,8 @@ Saving a Case is a separate, optional action offered after callback creation or 
 Case states are **Open**, **Follow-up scheduled**, **Handoff prepared**, and **Closed**. A saved pending callback starts as Follow-up scheduled; a saved completed callback starts Closed; an RCC email or quick reply that is merely ready to use starts Handoff prepared. Reopening a closed Case sets it to Open. A prepared Outlook draft is never labelled **Sent**, **Escalated**, or **Appointment scheduled** without a later explicit confirmation flow. No invented NOC ticket is generated at launch.
 
 The new app uses one app-owned account and session system in D1. An administrator is bootstrapped through deployment secrets and creates agent accounts; temporary passwords must have at least 12 characters and require change on first sign-in. Public login, password change and recovery, disabled-account handling, session expiry, same-origin write checks, secure HttpOnly cookies, login throttling, and audit events carry over from the stricter verified source behavior. Administrators manage accounts, but the product does not give them an agent's private Cases by default.
+
+The GitHub repository contains source, tests, and design documents. Deployment credentials, encryption keys, account passwords, and customer data stay out of Git and are provided through Sites secrets and D1 at runtime.
 
 Every callback, schedule, draft, Case, Case event, and user preference is scoped by the authenticated owner on the server. Customer identifiers, phone, names, notes, event payloads, and free-text case or draft content are encrypted before D1 storage with authenticated encryption; decryption happens only after authorization. Search first limits rows to the authenticated owner, then decrypts that owner's candidate rows on the server and matches the query; it never tries to search randomized ciphertext or scans across owners. Result pages contain at most 100 matches and provide a cursor for further matches. Session tokens are stored hashed.
 
