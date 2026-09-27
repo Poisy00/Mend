@@ -1,6 +1,8 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
+import { MendLink as Link } from "@/components/mend-link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { wallTimeToUtc } from "@/lib/follow-ups/time";
@@ -15,36 +17,18 @@ const reasons = ["Customer requested callback", "Call disconnected", "Waiting fo
 type Zone = "Africa/Cairo" | "America/New_York";
 type Draft = { fields: Record<string, string>; zone: Zone };
 
-export function FollowUpForm() {
+export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft; revision: number } | null }) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
-  const draftRevision = useRef(0);
+  const draftRevision = useRef(initialDraft?.revision ?? 0);
   const draftQueue = useRef<Promise<void>>(Promise.resolve());
   const timer = useRef<number | undefined>(undefined);
-  const [zone, setZone] = useState<Zone>("Africa/Cairo");
-  const [reason, setReason] = useState(reasons[0]);
-  const [priority, setPriority] = useState("normal");
-  const [dates, setDates] = useState({ dueAt: "", appointmentStart: "", appointmentEnd: "" });
-  const [ready, setReady] = useState(false);
+  const [zone, setZone] = useState<Zone>(initialDraft?.payload.zone ?? "Africa/Cairo");
+  const [reason, setReason] = useState(initialDraft?.payload.fields.reason ?? reasons[0]);
+  const [priority, setPriority] = useState(initialDraft?.payload.fields.priority ?? "normal");
+  const [dates, setDates] = useState({ dueAt: initialDraft?.payload.fields.dueAt ?? "", appointmentStart: initialDraft?.payload.fields.appointmentStart ?? "", appointmentEnd: initialDraft?.payload.fields.appointmentEnd ?? "" });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    fetch("/api/follow-ups/draft").then(response => response.json() as Promise<{ draft?: { payload: Draft; revision: number } }>).then(data => {
-      if (data.draft && formRef.current) {
-        draftRevision.current = data.draft.revision;
-        for (const [name, value] of Object.entries(data.draft.payload?.fields ?? {})) {
-          if (name === "reason") { setReason(value); continue; }
-          if (name === "priority") { setPriority(value); continue; }
-          if (name === "dueAt" || name === "appointmentStart" || name === "appointmentEnd") { setDates(previous => ({ ...previous, [name]: value })); continue; }
-          const field = formRef.current.elements.namedItem(name);
-          if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) field.value = value;
-        }
-        if (data.draft.payload?.zone) setZone(data.draft.payload.zone);
-      }
-      setReady(true);
-    }).catch(() => { setReady(true); toast.error("Could not restore your saved follow-up"); });
-    return () => window.clearTimeout(timer.current);
-  }, []);
 
   function currentDraft(nextZone: Zone = zone): Draft {
     const fields = formRef.current ? Object.fromEntries(new FormData(formRef.current).entries()) as Record<string, string> : {};
@@ -63,7 +47,7 @@ export function FollowUpForm() {
   }
 
   function scheduleDraft(nextZone: Zone = zone) {
-    if (!ready || pending) return;
+    if (pending) return;
     window.clearTimeout(timer.current);
     const snapshot = currentDraft(nextZone);
     timer.current = window.setTimeout(() => { void saveDraft(snapshot).catch(() => toast.error("Follow-up draft could not be saved")); }, 700);
@@ -87,32 +71,32 @@ export function FollowUpForm() {
       if (!response.ok) throw new Error(data.error ?? "Unable to create follow-up");
       await saveDraft({ fields: {}, zone }).catch(() => toast.error("Follow-up saved, but the draft could not be cleared"));
       toast.success("Follow-up scheduled");
-      window.location.replace("/follow-ups");
+      router.replace("/follow-ups");
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : "Unable to create follow-up");
     } finally { setPending(false); }
   }
 
   return <div className="mx-auto max-w-[800px]">
-    <a href="/follow-ups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Follow-ups</a>
+    <Link href="/follow-ups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Follow-ups</Link>
     <p className="mt-8 text-sm font-medium text-primary">NEW FOLLOW-UP</p>
     <h1 className="mt-2 text-4xl font-semibold tracking-[-.05em]">Keep your promise.</h1>
     <p className="mt-3 text-muted-foreground">Capture what to call about and when. The queue will bring it back at the right time.</p>
     <form ref={formRef} onInput={() => scheduleDraft()} onSubmit={submit} className="mt-9 space-y-8">
       <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2">
-        <div className="space-y-2"><Label htmlFor="customerName">Customer name · optional</Label><Input id="customerName" name="customerName" /></div>
-        <div className="space-y-2"><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" name="accountNumber" required /></div>
-        <div className="space-y-2"><Label htmlFor="phoneNumber">Phone number</Label><Input id="phoneNumber" name="phoneNumber" type="tel" required /></div>
-        <div className="space-y-2"><Label htmlFor="caseNumber">Case number · optional</Label><Input id="caseNumber" name="caseNumber" /></div>
+        <div className="space-y-2"><Label htmlFor="customerName">Customer name · optional</Label><Input id="customerName" name="customerName" defaultValue={initialDraft?.payload.fields.customerName ?? ""} /></div>
+        <div className="space-y-2"><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" name="accountNumber" defaultValue={initialDraft?.payload.fields.accountNumber ?? ""} required /></div>
+        <div className="space-y-2"><Label htmlFor="phoneNumber">Phone number</Label><Input id="phoneNumber" name="phoneNumber" type="tel" defaultValue={initialDraft?.payload.fields.phoneNumber ?? ""} required /></div>
+        <div className="space-y-2"><Label htmlFor="caseNumber">Case number · optional</Label><Input id="caseNumber" name="caseNumber" defaultValue={initialDraft?.payload.fields.caseNumber ?? ""} /></div>
         <div className="space-y-2"><Label htmlFor="reason">Reason</Label><MendSelect id="reason" name="reason" required value={reason} onValueChange={value => { setReason(value); window.requestAnimationFrame(() => scheduleDraft()); }} options={reasons.map(reason => ({ value: reason, label: reason }))} /></div>
         <div className="space-y-2"><Label htmlFor="dueAt">Call back at</Label><MendDatePicker id="dueAt" name="dueAt" mode="datetime" value={dates.dueAt} onValueChange={value => { setDates(previous => ({ ...previous, dueAt: value })); window.requestAnimationFrame(() => scheduleDraft()); }} required /></div>
         <div className="space-y-2"><Label htmlFor="zone">Time zone</Label><MendSelect id="zone" value={zone} onValueChange={value => { const next = value as Zone; setZone(next); scheduleDraft(next); }} options={[{ value: "Africa/Cairo", label: "Cairo time" }, { value: "America/New_York", label: "New York time" }]} /></div>
         <div className="space-y-2"><Label htmlFor="priority">Priority</Label><MendSelect id="priority" name="priority" value={priority} onValueChange={value => { setPriority(value); window.requestAnimationFrame(() => scheduleDraft()); }} options={[{ value: "normal", label: "Normal" }, { value: "urgent", label: "Urgent" }]} /></div>
       </section>
-      <div className="space-y-2 border-t border-border pt-7"><Label htmlFor="notes">Context and next step</Label><Textarea id="notes" name="notes" rows={5} placeholder="What should you know when it is time to call?" /></div>
-      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="promise">Promise to the customer · optional</Label><Textarea id="promise" name="promise" rows={3} /></div><div className="space-y-2"><Label htmlFor="completionCondition">What completes this follow-up? · optional</Label><Textarea id="completionCondition" name="completionCondition" rows={3} /></div><div className="space-y-2"><Label htmlFor="appointmentStart">Appointment starts · optional</Label><MendDatePicker id="appointmentStart" name="appointmentStart" mode="datetime" value={dates.appointmentStart} onValueChange={value => { setDates(previous => ({ ...previous, appointmentStart: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div><div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends · optional</Label><MendDatePicker id="appointmentEnd" name="appointmentEnd" mode="datetime" value={dates.appointmentEnd} onValueChange={value => { setDates(previous => ({ ...previous, appointmentEnd: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div></section>
+      <div className="space-y-2 border-t border-border pt-7"><Label htmlFor="notes">Context and next step</Label><Textarea id="notes" name="notes" rows={5} defaultValue={initialDraft?.payload.fields.notes ?? ""} placeholder="What should you know when it is time to call?" /></div>
+      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="promise">Promise to the customer · optional</Label><Textarea id="promise" name="promise" rows={3} defaultValue={initialDraft?.payload.fields.promise ?? ""} /></div><div className="space-y-2"><Label htmlFor="completionCondition">What completes this follow-up? · optional</Label><Textarea id="completionCondition" name="completionCondition" rows={3} defaultValue={initialDraft?.payload.fields.completionCondition ?? ""} /></div><div className="space-y-2"><Label htmlFor="appointmentStart">Appointment starts · optional</Label><MendDatePicker id="appointmentStart" name="appointmentStart" mode="datetime" value={dates.appointmentStart} onValueChange={value => { setDates(previous => ({ ...previous, appointmentStart: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div><div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends · optional</Label><MendDatePicker id="appointmentEnd" name="appointmentEnd" mode="datetime" value={dates.appointmentEnd} onValueChange={value => { setDates(previous => ({ ...previous, appointmentEnd: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div></section>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-      <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><a href="/follow-ups">Cancel</a></Button><Button type="submit" className="min-w-[160px]" disabled={pending || !ready}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
+      <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><Link href="/follow-ups">Cancel</Link></Button><Button type="submit" className="min-w-[160px]" disabled={pending}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
     </form>
   </div>;
 }

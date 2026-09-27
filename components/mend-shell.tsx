@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { MendLink } from "@/components/mend-link";
 import { CalendarDays, ChevronDown, ClipboardList, Headset, LayoutDashboard, Menu, PhoneForwarded, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-export type Area = "today" | "follow-ups" | "rcc" | "cases" | "schedule";
+export type Area = "today" | "follow-ups" | "rcc" | "cases" | "schedule" | "settings" | "admin";
 const navigation = [
   { id: "today", label: "Today", href: "/", icon: LayoutDashboard },
   { id: "follow-ups", label: "Follow-ups", href: "/follow-ups", icon: PhoneForwarded },
@@ -14,27 +16,37 @@ const navigation = [
   { id: "schedule", label: "Schedule", href: "/schedule", icon: CalendarDays },
 ] as const;
 
-function NavLinks({ currentArea }: { currentArea: Area }) {
+function areaFromPathname(pathname: string): Area {
+  if (pathname === "/follow-ups" || pathname.startsWith("/follow-ups/")) return "follow-ups";
+  if (pathname === "/rcc" || pathname.startsWith("/rcc/")) return "rcc";
+  if (pathname === "/cases" || pathname.startsWith("/cases/")) return "cases";
+  if (pathname === "/schedule" || pathname.startsWith("/schedule/")) return "schedule";
+  if (pathname === "/settings" || pathname.startsWith("/settings/")) return "settings";
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) return "admin";
+  return "today";
+}
+
+function NavLinks({ currentArea, onNavigate }: { currentArea: Area; onNavigate?: () => void }) {
   return <nav aria-label="Workspace" className="mt-7 space-y-1">
-    {navigation.map(({ id, label, href, icon: Icon }) => <a key={id} href={href} aria-current={currentArea === id ? "page" : undefined} className={"flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors hover:bg-sidebar-accent focus-visible:outline-ring " + (currentArea === id ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}>
+    {navigation.map(({ id, label, href, icon: Icon }) => <MendLink key={id} href={href} prefetch onClick={onNavigate} aria-current={currentArea === id ? "page" : undefined} className={"flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors hover:bg-sidebar-accent focus-visible:outline-ring " + (currentArea === id ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}>
       <Icon aria-hidden="true" className="size-[18px]" /><span>{label}</span>
-    </a>)}
+    </MendLink>)}
   </nav>;
 }
 
-export function MendShell({ children, currentArea }: { children: React.ReactNode; currentArea: Area }) {
+export function MendShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const currentArea = areaFromPathname(pathname);
   const [open, setOpen] = useState(false);
   return <div className="min-h-dvh bg-background text-foreground">
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-[238px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 md:flex">
-      {/* vinext's production Link navigation currently fails after preventing the native click. */}
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="flex min-h-9 items-center px-3">
+      <MendLink href="/" className="flex min-h-9 items-center px-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mend-logo.svg" width="122" height="35" alt="Mend" className="mend-logo h-auto w-[122px]" style={{ viewTransitionName: currentArea === "today" ? "mend-wordmark" : "none" }} />
-      </a>
+        <img src="/mend-logo.svg" width="122" height="35" alt="Mend" className="mend-logo h-auto w-[122px]" />
+      </MendLink>
       <NavLinks currentArea={currentArea} />
       <div className="mt-auto border-t border-sidebar-border pt-4">
-        <a href="/settings" className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] text-muted-foreground hover:bg-sidebar-accent"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</a>
+        <MendLink href="/settings" aria-current={currentArea === "settings" ? "page" : undefined} className={"flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] hover:bg-sidebar-accent " + (currentArea === "settings" ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground" : "text-muted-foreground")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
         <p className="px-3 pt-3 text-xs text-muted-foreground">A clearer desk for every case.</p>
       </div>
     </aside>
@@ -43,7 +55,7 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
         <div className="flex items-center gap-2">
           <Button className="md:hidden" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></Button>
           <div className="hidden text-sm text-muted-foreground sm:block">Workspace <span className="mx-2">/</span></div>
-          <span className="text-[15px] font-semibold">{navigation.find(item => item.id === currentArea)?.label}</span>
+          <span className="text-[15px] font-semibold">{currentArea === "settings" ? "Settings" : currentArea === "admin" ? "Agent access" : navigation.find(item => item.id === currentArea)?.label}</span>
           <ChevronDown className="size-4 text-muted-foreground md:hidden" aria-hidden="true" />
         </div>
         <ThemeToggle />
@@ -60,8 +72,8 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
           </SheetTitle>
           <SheetDescription className="sr-only">Workspace navigation</SheetDescription>
         </SheetHeader>
-        <NavLinks currentArea={currentArea} />
-        <a href="/settings" className="mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] text-sidebar-foreground/75"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</a>
+        <NavLinks currentArea={currentArea} onNavigate={() => setOpen(false)} />
+        <MendLink href="/settings" onClick={() => setOpen(false)} aria-current={currentArea === "settings" ? "page" : undefined} className={"mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] " + (currentArea === "settings" ? "font-medium text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
       </SheetContent>
     </Sheet>
   </div>;
