@@ -28,7 +28,10 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-[238px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 md:flex">
       {/* vinext's production Link navigation currently fails after preventing the native click. */}
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-      <a href="/" className="flex items-center gap-3 px-3 text-[22px] font-semibold tracking-[-.055em]"><span className="grid size-8 place-items-center rounded-[11px] bg-primary text-primary-foreground text-[19px]">m</span>Mend</a>
+      <a href="/" className="flex min-h-9 items-center px-3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/mend-logo.svg" width="122" height="35" alt="Mend" className="h-auto w-[122px] dark:brightness-0 dark:invert" style={{ viewTransitionName: currentArea === "today" ? "mend-wordmark" : "none" }} />
+      </a>
       <NavLinks currentArea={currentArea} />
       <div className="mt-auto border-t border-sidebar-border pt-4">
         <a href="/settings" className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] text-muted-foreground hover:bg-sidebar-accent"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</a>
@@ -47,6 +50,19 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
       </header>
       <main id="main-content" className="mx-auto w-full max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10">{children}</main>
     </div>
-    <Sheet open={open} onOpenChange={setOpen}><SheetContent side="left" className="w-[280px] bg-sidebar p-5"><SheetHeader><SheetTitle className="text-left text-2xl tracking-tight">Mend</SheetTitle><SheetDescription className="sr-only">Workspace navigation</SheetDescription></SheetHeader><NavLinks currentArea={currentArea} /><a href="/settings" className="mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] text-sidebar-foreground/75"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</a></SheetContent></Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent side="left" className="w-[280px] bg-sidebar p-5">
+        <SheetHeader>
+          <SheetTitle className="text-left text-2xl tracking-tight">
+            <span className="sr-only">Mend</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/mend-logo.svg" width="122" height="35" alt="" className="h-auto w-[122px] dark:brightness-0 dark:invert" />
+          </SheetTitle>
+          <SheetDescription className="sr-only">Workspace navigation</SheetDescription>
+        </SheetHeader>
+        <NavLinks currentArea={currentArea} />
+        <a href="/settings" className="mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] text-sidebar-foreground/75"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</a>
+      </SheetContent>
+    </Sheet>
   </div>;
 }

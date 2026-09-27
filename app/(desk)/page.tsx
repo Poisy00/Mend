@@ -7,6 +7,7 @@ import { listFollowUps } from "@/lib/server/follow-ups";
 import { getSchedule } from "@/lib/server/schedule";
 import { activeShift } from "@/lib/schedule/rules";
 import { classifyFollowUp, rankFollowUp } from "@/lib/follow-ups/rules";
+import "./today-transition.css";
 
 export default async function TodayPage() {
   const session = await getPageSession();
