@@ -5,9 +5,9 @@ import { toast } from "sonner";
 
 type Workflow = "quick-follow-up" | "technician-review";
 
-export function useRccAutosave(workflow: Workflow, payload: unknown, ready: boolean) {
-  const revision = useRef(0);
-  const lastSaved = useRef("");
+export function useRccAutosave(workflow: Workflow, payload: unknown, ready: boolean, initialRevision = 0) {
+  const revision = useRef(initialRevision);
+  const lastSaved = useRef(JSON.stringify(payload));
   const queue = useRef<Promise<number>>(Promise.resolve(0));
   const [saving, setSaving] = useState(false);
   const serialized = JSON.stringify(payload);
