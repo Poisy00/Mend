@@ -57,4 +57,8 @@ button, a { -webkit-tap-highlight-color:transparent; }
 textarea[data-treatment="document"] { min-height:28rem; border:0; border-radius:.75rem; background:var(--document); color:var(--document-foreground); padding:1.5rem; font:400 .875rem/1.55 var(--font-geist-sans),Arial,sans-serif; box-shadow:0 0 0 1px rgba(0,0,0,.07),0 10px 30px -26px rgba(0,0,0,.22); }
 textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focus-ring); outline-offset:2px; box-shadow:0 0 0 1px rgba(0,0,0,.07),0 10px 30px -26px rgba(0,0,0,.22); }
 @keyframes mend-enter { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="skeleton"], .mend-enter { animation: none !important; }
+}
 @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; } }

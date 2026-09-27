@@ -7,23 +7,22 @@ import { ArrowUpRight,Check,ChevronDown,Clipboard,Settings2 } from "lucide-react
 import { Button } from "@/components/ui/button";import { Input } from "@/components/ui/input";import { Label } from "@/components/ui/label";import { Textarea } from "@/components/ui/textarea";
 import { SaveCaseDialog } from "@/components/cases/save-dialog";
 import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger } from "@/components/ui/dialog";
-import { resolveExpediteRoute } from "@/lib/rcc/expedite-routing";import { assessExpedite } from "@/lib/rcc/expedite-readiness";import { buildExpediteEmail } from "@/lib/rcc/expedite-email";import type { ExpediteInput,RccPreferences } from "@/lib/rcc/types";import { DEFAULT_EXPEDITE_ACTION,DEFAULT_RCC_PREFERENCES,EXPEDITE_TEMPLATES,EXPEDITE_REASONS,applyExpediteTemplate } from "@/lib/rcc/expedite-templates";
+import { resolveExpediteRoute } from "@/lib/rcc/expedite-routing";import { assessExpedite } from "@/lib/rcc/expedite-readiness";import { buildExpediteEmail } from "@/lib/rcc/expedite-email";import type { ExpediteInput,RccPreferences } from "@/lib/rcc/types";import { DEFAULT_EXPEDITE_ACTION,EXPEDITE_TEMPLATES,EXPEDITE_REASONS,applyExpediteTemplate } from "@/lib/rcc/expedite-templates";
+import type { SavedDraft } from "@/lib/rcc/initial-state";
 const blank:ExpediteInput={teamMode:"auto",account:"",phone:"",customerName:"",date:"",window:"8 AM–12 PM",reason:"",summary:"",action:DEFAULT_EXPEDITE_ACTION,scheduled:true};
-const blankPrefs:RccPreferences=DEFAULT_RCC_PREFERENCES;
 const templateGroups = [
   { label: "CONNECTIVITY", ids: ["no-internet", "outage", "degradation", "repeat"] },
   { label: "APPOINTMENT / RETENTION", ids: ["missed", "cancel"] },
   { label: "SPECIAL CASES", ids: ["business", "damage"] },
 ];
-export function ExpediteForm(){const [form,setForm]=useState<ExpediteInput>(blank),[prefs,setPrefs]=useState<RccPreferences>(blankPrefs),[revision,setRevision]=useState(0),[loaded,setLoaded]=useState(false),[pending,setPending]=useState(false),[notice,setNotice]=useState(""),[handoffId,setHandoffId]=useState(""),[view,setView]=useState<"compose"|"preview">("compose");
-const [templateOpen,setTemplateOpen]=useState(false),[selectedTemplate,setSelectedTemplate]=useState<string | null>(null);
-const [lastSavedPayload,setLastSavedPayload]=useState("");
+export function ExpediteForm({initialDraft,initialPreferences}:{initialDraft:SavedDraft<ExpediteInput>;initialPreferences:RccPreferences}){const [form,setForm]=useState<ExpediteInput>(()=>initialDraft?{...blank,...initialDraft.payload}:blank),[prefs,setPrefs]=useState<RccPreferences>(initialPreferences),[revision,setRevision]=useState(initialDraft?.revision??0),[pending,setPending]=useState(false),[notice,setNotice]=useState(""),[handoffId,setHandoffId]=useState(""),[view,setView]=useState<"compose"|"preview">("compose");
+const [templateOpen,setTemplateOpen]=useState(false),[selectedTemplate,setSelectedTemplate]=useState<string | null>(()=>initialDraft?EXPEDITE_TEMPLATES.find(item=>item.reason===initialDraft.payload.reason&&item.summary===initialDraft.payload.summary)?.id??null:null);
+const [lastSavedPayload,setLastSavedPayload]=useState(()=>JSON.stringify(initialDraft?{...blank,...initialDraft.payload}:blank));
 const summaryRef=useRef<HTMLTextAreaElement>(null);
-const latest=useRef({revision:0,payload:""});
-useEffect(()=>{Promise.all([fetch("/api/rcc/drafts/expedite").then(r=>r.json()),fetch("/api/rcc/preferences").then(r=>r.json())]).then(([draftResult,prefResult]:any[])=>{if(draftResult.draft){setForm({...blank,...draftResult.draft.payload});setRevision(draftResult.draft.revision);latest.current={revision:draftResult.draft.revision,payload:JSON.stringify(draftResult.draft.payload)};setLastSavedPayload(JSON.stringify({...blank,...draftResult.draft.payload}));setSelectedTemplate(EXPEDITE_TEMPLATES.find(item=>item.reason===draftResult.draft.payload.reason&&item.summary===draftResult.draft.payload.summary)?.id??null);}if(prefResult.preferences)setPrefs(prefResult.preferences);setLoaded(true);}).catch(()=>setLoaded(true));},[]);
+const latest=useRef({revision:initialDraft?.revision??0,payload:JSON.stringify(initialDraft?{...blank,...initialDraft.payload}:blank)});
 function patch<K extends keyof ExpediteInput>(key:K,value:ExpediteInput[K]){setForm(current=>({...current,[key]:value}));}
 async function save(payload:ExpediteInput){const serialized=JSON.stringify(payload);if(serialized===latest.current.payload)return latest.current.revision;const response=await fetch("/api/rcc/drafts/expedite",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({payload,expectedRevision:latest.current.revision})});const data:any=await response.json();if(!response.ok)throw new Error(data.error??"Unable to save draft");latest.current={revision:data.revision,payload:serialized};setLastSavedPayload(serialized);setRevision(data.revision);return data.revision;}
-useEffect(()=>{if(!loaded)return;const timer=setTimeout(()=>{void save(form).catch(()=>toast.error("Draft could not be saved"));},800);return()=>clearTimeout(timer);},[form,loaded]);
+useEffect(()=>{if(JSON.stringify(form)===latest.current.payload)return;const timer=setTimeout(()=>{void save(form).catch(()=>toast.error("Draft could not be saved"));},800);return()=>clearTimeout(timer);},[form]);
 const route=useMemo(()=>resolveExpediteRoute(form,new Date()),[form]);const readiness=assessExpedite(form,prefs,route);const draft=buildExpediteEmail(form,prefs,route);
 const previewHtml=draft.html.split("<!--StartFragment-->")[1]?.split("<!--EndFragment-->")[0] ?? "";
 async function savePrefs(){const response=await fetch("/api/rcc/preferences",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(prefs)});if(response.ok)toast.success("Recipients and signature saved");else toast.error("Could not save settings");}
@@ -94,7 +93,7 @@ return (
       <aside className={view==="compose"?"hidden min-[1100px]:block":""}>
         <div className="flex items-center justify-between gap-4">
           <p className="text-[11px] font-semibold tracking-[.12em] text-[var(--text-secondary)]">LIVE PREVIEW</p>
-          <span role="status" className="text-xs text-[var(--text-secondary)] tabular-nums">{!loaded?"Loading…":pending?"Preparing…":JSON.stringify(form)!==lastSavedPayload?"Autosaving…":`Saved · revision ${revision}`}</span>
+          <span role="status" className="text-xs text-[var(--text-secondary)] tabular-nums">{pending?"Preparing…":JSON.stringify(form)!==lastSavedPayload?"Autosaving…":`Saved · revision ${revision}`}</span>
         </div>
         <div className="mt-5 rounded-xl bg-[var(--document)] px-5 py-6 text-[var(--document-foreground)] shadow-[0_0_0_1px_rgba(0,0,0,.07),0_10px_30px_-26px_rgba(0,0,0,.22)] sm:px-7">
           <div className="grid gap-x-3 gap-y-2 text-[13px] sm:grid-cols-[3.5rem_minmax(0,1fr)]">

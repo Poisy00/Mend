@@ -1,13 +1,12 @@
 "use client";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 type User={id:string;username:string;displayName:string;role:"user"|"admin";status:"active"|"disabled";mustChangePassword:boolean};
-export function AdminUsers(){const [users,setUsers]=useState<User[]>([]);const [pending,setPending]=useState(false);const [error,setError]=useState("");
+export function AdminUsers({initialUsers}:{initialUsers:User[]}){const [users,setUsers]=useState<User[]>(initialUsers);const [pending,setPending]=useState(false);const [error,setError]=useState("");
 async function refresh(){const response=await fetch("/api/admin/users");if(response.ok)setUsers(((await response.json()) as any).users);}
-useEffect(()=>{fetch("/api/admin/users").then(response=>response.json()).then((data:any)=>setUsers(data.users)).catch(()=>{});},[]);
 async function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();setPending(true);setError("");const form=new FormData(event.currentTarget);try{const response=await fetch("/api/admin/users",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({username:form.get("username"),displayName:form.get("displayName"),temporaryPassword:form.get("temporaryPassword")})});const data:any=await response.json();if(!response.ok)throw new Error(data.error);(event.target as HTMLFormElement).reset();toast.success("Agent created. Share the temporary password securely.");await refresh();}catch(issue){setError(issue instanceof Error?issue.message:"Unable to create agent");}finally{setPending(false);}}
 async function disable(user:User){if(!window.confirm(`Disable ${user.displayName}? Their active sessions will end.`))return;const response=await fetch(`/api/admin/users/${user.id}`,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({action:"disable"})});if(response.ok){toast.success("Agent disabled");await refresh();}else toast.error("Unable to disable agent");}
 async function resetPassword(user:User){const temporaryPassword=window.prompt(`Enter a new temporary password for ${user.displayName} (at least 12 characters).`);if(temporaryPassword===null)return;if(temporaryPassword.length<12){toast.error("Use at least 12 characters");return;}const response=await fetch(`/api/admin/users/${user.id}`,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({action:"reset-password",temporaryPassword})});if(response.ok){toast.success("Password reset. Existing sessions ended; share the temporary password securely.");await refresh();}else toast.error("Unable to reset password");}

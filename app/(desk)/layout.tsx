@@ -1,9 +1,7 @@
-import { redirect } from "next/navigation";
-import { getPageSession } from "@/lib/server/page-auth";
+import { requirePageSession } from "@/lib/server/page-auth";
+import { MendShell } from "@/components/mend-shell";
 
 export default async function DeskLayout({ children }: { children: React.ReactNode }) {
-  const session = await getPageSession();
-  if (!session) redirect("/login");
-  if (session.mustChangePassword) redirect("/change-password");
-  return children;
+  await requirePageSession();
+  return <MendShell>{children}</MendShell>;
 }

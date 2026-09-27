@@ -1,6 +1,6 @@
 "use client";
 import { MendDatePicker } from "@/components/ui/mend-date-picker";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,20 +9,15 @@ import { emptyWeek, validateWeeklyPattern, type DayPlan, type Pause, type WeekPa
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const blankDay = (): DayPlan => ({ off: false, start: "09:00", end: "17:00", breaks: [], lunch: null });
 
-export function WeeklyGrid() {
-  const [week, setWeek] = useState<WeekPattern>(emptyWeek());
-  const [revision, setRevision] = useState(0);
-  const [loading, setLoading] = useState(true);
+type InitialSchedule = { week: WeekPattern; revision: number; exceptions: { date: string; plan: DayPlan }[] };
+
+export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedule }) {
+  const [week, setWeek] = useState<WeekPattern>(initialSchedule.week);
+  const [revision, setRevision] = useState(initialSchedule.revision);
   const [pending, setPending] = useState(false);
   const [exceptionDate, setExceptionDate] = useState("");
   const [exceptionPlan, setExceptionPlan] = useState<DayPlan>(blankDay());
-  const [exceptions, setExceptions] = useState<{ date: string; plan: DayPlan }[]>([]);
-  useEffect(() => {
-    fetch("/api/schedule").then(response => response.json()).then((data: any) => {
-      if (data.week) { setWeek(data.week); setRevision(data.revision); setExceptions(data.exceptions ?? []); }
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
+  const [exceptions, setExceptions] = useState<{ date: string; plan: DayPlan }[]>(initialSchedule.exceptions);
   function patchDay(index: number, changes: Partial<DayPlan>) {
     setWeek(current => current.map((day, i) => i === index ? { ...day, ...changes } : day) as WeekPattern);
   }
@@ -59,7 +54,7 @@ export function WeeklyGrid() {
     <h1 className="mt-2 text-4xl font-semibold tracking-[-.05em]">Schedule</h1>
     <p className="mt-3 max-w-2xl text-muted-foreground">Set a repeating Sunday–Saturday pattern in Cairo time. It will carry into future weeks until you change it.</p>
     <div className="mt-9 border-t border-border">
-      {loading ? <p className="py-10 text-muted-foreground">Loading your schedule…</p> : week.map((day, index) => <div key={days[index]} className="border-b border-border py-5">
+      {week.map((day, index) => <div key={days[index]} className="border-b border-border py-5">
         <div className="grid gap-3 sm:grid-cols-[140px_110px_1fr_1fr] sm:items-center">
           <strong>{days[index]}</strong>
           <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!day.off} onChange={event => patchDay(index, { off: !event.target.checked, breaks: [], lunch: null })} />Working</label>
@@ -78,7 +73,7 @@ export function WeeklyGrid() {
         </details>}
       </div>)}
     </div>
-    <div className="mt-6 flex justify-end"><Button onClick={saveWeek} disabled={pending || loading} className="min-w-[150px]">{pending ? "Saving…" : "Save work week"}</Button></div>
+    <div className="mt-6 flex justify-end"><Button onClick={saveWeek} disabled={pending} className="min-w-[150px]">{pending ? "Saving…" : "Save work week"}</Button></div>
     <section className="mt-12 border-t border-border pt-8">
       <h2 className="text-xl font-semibold">One-day exception</h2>
       <p className="mt-2 text-sm text-muted-foreground">Override the repeating pattern for one Cairo calendar date.</p>

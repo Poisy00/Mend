@@ -1,29 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FolderOpen, Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { WorkListHeader, WorkRow } from "@/components/ui/work-row";
+import { WorkRowSkeleton } from "@/components/workspace-skeleton";
 import type { CaseRecord, CaseStatus } from "@/lib/cases/types";
 
 type Page = { items: CaseRecord[]; nextCursor: string | null };
 type History = { id: string; type: string; createdAt: string };
 const statuses = ["All", "Open", "Follow-up scheduled", "Handoff prepared", "Closed"] as const;
 
-export function CaseQueue() {
-  const [items, setItems] = useState<CaseRecord[]>([]);
+export function CaseQueue({ initialPage }: { initialPage: Page }) {
+  const [items, setItems] = useState<CaseRecord[]>(initialPage.items);
   const [selected, setSelected] = useState<CaseRecord | null>(null);
   const [history, setHistory] = useState<History[]>([]);
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<(typeof statuses)[number]>("All");
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialPage.nextCursor);
+  const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const firstSearch = useRef(true);
 
   useEffect(() => { const timer = window.setTimeout(() => setQuery(search.trim()), 250); return () => window.clearTimeout(timer); }, [search]);
 
@@ -44,7 +47,7 @@ export function CaseQueue() {
     setLoading(false);
   }, [url]);
 
-  useEffect(() => { let active = true; fetch(url()).then(response => response.json() as Promise<Page>).then(page => { if (active) { setItems(page.items); setNextCursor(page.nextCursor); setLoading(false); } }).catch(() => { if (active) { setLoading(false); toast.error("Unable to load Cases"); } }); return () => { active = false; }; }, [url]);
+  useEffect(() => { if (firstSearch.current) { firstSearch.current = false; return; } let active = true; fetch(url()).then(response => { if (!response.ok) throw new Error(); return response.json() as Promise<Page>; }).then(page => { if (active) { setItems(page.items); setNextCursor(page.nextCursor); setLoading(false); } }).catch(() => { if (active) { setLoading(false); toast.error("Unable to load Cases"); } }); return () => { active = false; }; }, [url]);
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
@@ -60,9 +63,12 @@ export function CaseQueue() {
 
   async function select(item: CaseRecord) {
     setSelected(item);
+    setHistory([]);
+    setHistoryLoading(true);
     setMobileOpen(true);
-    const response = await fetch(`/api/cases/${item.id}`);
-    if (response.ok) setHistory(((await response.json()) as { history: History[] }).history);
+    try { const response = await fetch(`/api/cases/${item.id}`);
+      if (response.ok) setHistory(((await response.json()) as { history: History[] }).history);
+    } finally { setHistoryLoading(false); }
   }
 
   async function setStatus(status: CaseStatus) {
@@ -97,7 +103,7 @@ export function CaseQueue() {
     <p className="mt-7 whitespace-pre-wrap border-y border-border py-5 text-sm leading-6">{selected.summary}</p>
     <div className="mt-6 flex flex-wrap gap-2">{selected.status === "Closed" ? <Button variant="outline" onClick={() => void setStatus("Open")}>Reopen</Button> : <Button onClick={() => void setStatus("Closed")}>Close Case</Button>}<Button variant="ghost" onClick={() => void removeCase()}>Delete Case</Button></div>
     <h3 className="mt-9 text-sm font-semibold">History</h3>
-    <div className="mt-3 divide-y divide-border">{history.map(entry => <div key={entry.id} className="py-3 text-sm"><p>{entry.type.replaceAll("_", " ")}</p><p className="text-xs text-muted-foreground">{entry.createdAt}</p></div>)}</div>
+    <div className="mt-3 divide-y divide-border">{historyLoading ? <div className="space-y-3 py-3"><WorkRowSkeleton count={2} /></div> : history.map(entry => <div key={entry.id} className="py-3 text-sm"><p>{entry.type.replaceAll("_", " ")}</p><p className="text-xs text-muted-foreground">{entry.createdAt}</p></div>)}</div>
   </div> : <div className="grid min-h-[360px] place-items-center text-center text-sm text-muted-foreground">Select a Case to see its details and history.</div>;
 
   return <div>
@@ -105,8 +111,9 @@ export function CaseQueue() {
     <div className="mt-8 flex flex-wrap gap-2 border-b border-border pb-5">{statuses.map(value => <button key={value} onClick={() => { if (value !== filter) { setLoading(true); setFilter(value); } }} className={"rounded-lg px-3 py-2 text-sm " + (filter === value ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground hover:bg-muted")}>{value}</button>)}</div>
     <div className="grid min-[1100px]:grid-cols-[minmax(0,1fr)_minmax(350px,.82fr)]">
       <section className="min-h-[500px] min-[1100px]:border-r min-[1100px]:border-border min-[1100px]:pr-7">
-        <div className="flex items-center gap-3 border-b border-border py-5"><Search className="size-4 text-muted-foreground"/><Input value={search} onChange={event => { setSearch(event.target.value); setLoading(true); }} placeholder="Search your Cases" aria-label="Search your Cases" className="border-0 bg-transparent shadow-none focus-visible:ring-0"/><span className="text-sm text-muted-foreground">{items.length}{nextCursor ? "+" : ""}</span></div>
-        {loading ? <div className="py-9 text-sm text-muted-foreground">Loading your Cases…</div> : items.length === 0 ? <div className="grid min-h-[340px] place-items-center text-center"><div><span className="mx-auto grid size-11 place-items-center rounded-xl bg-accent text-primary"><FolderOpen className="size-5"/></span><h2 className="mt-4 text-lg font-semibold">No Cases in this view</h2><p className="mt-1 text-sm text-muted-foreground">Save a follow-up or prepared RCC draft when you need a record.</p></div></div> : <div><WorkListHeader detail="Status / priority" />{items.map(item => <WorkRow key={item.id} title={item.customerName || item.accountNumber} subtitle={item.summary} eyebrow={item.humanId} meta={item.category + " · " + item.priority + " priority"} status={item.status} tone={item.status === "Closed" ? "complete" : item.priority === "High" ? "urgent" : "default"} selected={selected?.id === item.id} onClick={() => void select(item)} />)}</div>}
+        <div className="flex items-center gap-3 border-b border-border py-5"><Search className="size-4 text-muted-foreground"/><Input value={search} onChange={event => { setSearch(event.target.value); setLoading(event.target.value.trim() !== query); }} placeholder="Search your Cases" aria-label="Search your Cases" className="border-0 bg-transparent shadow-none focus-visible:ring-0"/><span className="text-sm text-muted-foreground">{items.length}{nextCursor ? "+" : ""}</span></div>
+        {loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="grid min-h-[340px] place-items-center text-center"><div><span className="mx-auto grid size-11 place-items-center rounded-xl bg-accent text-primary"><FolderOpen className="size-5"/></span><h2 className="mt-4 text-lg font-semibold">No Cases in this view</h2><p className="mt-1 text-sm text-muted-foreground">Save a follow-up or prepared RCC draft when you need a record.</p></div></div> : <div><WorkListHeader detail="Status / priority" />{items.map(item => <WorkRow key={item.id} title={item.customerName || item.accountNumber} subtitle={item.summary} eyebrow={item.humanId} meta={item.category + " · " + item.priority + " priority"} status={item.status} tone={item.status === "Closed" ? "complete" : item.priority === "High" ? "urgent" : "default"} selected={selected?.id === item.id} onClick={() => void select(item)} />)}</div>}
+        {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="outline" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more Cases"}</Button>}
       </section>
       <aside className="hidden min-[1100px]:block min-[1100px]:pl-7">{detail}</aside>

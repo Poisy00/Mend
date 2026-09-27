@@ -1,8 +1,0 @@
-@view-transition { navigation: auto; }
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-old(mend-wordmark),
-  ::view-transition-new(mend-wordmark) { animation-duration: .01ms; }
-}

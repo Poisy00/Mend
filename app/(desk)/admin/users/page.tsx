@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getPageSession } from "@/lib/server/page-auth";
-import { MendShell } from "@/components/mend-shell";
+import { requirePageSession } from "@/lib/server/page-auth";
 import { AdminUsers } from "@/components/admin/users";
-export default async function AdminUsersPage(){const user=await getPageSession();if(!user||user.role!=="admin")redirect("/");return <MendShell currentArea="today"><AdminUsers /></MendShell>;}
+import { listAgents } from "@/lib/server/admin";
+export default async function AdminUsersPage(){const user=await requirePageSession();if(user.role!=="admin")redirect("/");const initialUsers=await listAgents(user.id);return <AdminUsers initialUsers={initialUsers} />;}
