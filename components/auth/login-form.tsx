@@ -1,6 +1,5 @@
 "use client";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export function LoginForm() {
-  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -22,8 +20,7 @@ export function LoginForm() {
       const data:any = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Sign in failed");
       toast.success("Signed in");
-      router.replace(data.user.mustChangePassword ? "/change-password" : "/");
-      router.refresh();
+      window.location.replace(data.user.mustChangePassword ? "/change-password" : "/");
     } catch (issue) { setError(issue instanceof Error ? issue.message : "Sign in failed"); }
     finally { setPending(false); }
   }

@@ -1,12 +1,10 @@
 "use client";
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 export function ChangePasswordForm() {
-  const router = useRouter();
   const [pending,setPending]=useState(false);
   const [error,setError]=useState("");
   async function submit(event:FormEvent<HTMLFormElement>) {
@@ -14,7 +12,7 @@ export function ChangePasswordForm() {
     const form = new FormData(event.currentTarget);
     if (form.get("newPassword") !== form.get("confirmPassword")) { setError("New passwords do not match"); return; }
     setPending(true); setError("");
-    try { const response=await fetch("/api/auth/change-password",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({currentPassword:form.get("currentPassword"),newPassword:form.get("newPassword")})}); const data:any=await response.json(); if(!response.ok)throw new Error(data.error??"Unable to change password"); toast.success("Password changed"); router.replace("/"); router.refresh(); }
+    try { const response=await fetch("/api/auth/change-password",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({currentPassword:form.get("currentPassword"),newPassword:form.get("newPassword")})}); const data:any=await response.json(); if(!response.ok)throw new Error(data.error??"Unable to change password"); toast.success("Password changed"); window.location.replace("/"); }
     catch(issue){setError(issue instanceof Error?issue.message:"Unable to change password");}
     finally{setPending(false);}
   }
