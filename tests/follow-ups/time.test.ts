@@ -1,0 +1,3 @@
+import assert from "node:assert/strict";import test from "node:test";import { wallTimeToUtc } from "../../lib/follow-ups/time";
+test("New York gap and fold are explicit",()=>{assert.throws(()=>wallTimeToUtc("2026-03-08T02:30","America/New_York"));assert.throws(()=>wallTimeToUtc("2026-11-01T01:30","America/New_York"));assert.equal(wallTimeToUtc("2026-11-01T01:30","America/New_York","earlier"),"2026-11-01T05:30:00.000Z");assert.equal(wallTimeToUtc("2026-11-01T01:30","America/New_York","later"),"2026-11-01T06:30:00.000Z");});
+test("Cairo midnight maps to an instant",()=>{assert.equal(wallTimeToUtc("2026-09-28T00:00","Africa/Cairo"),"2026-09-27T21:00:00.000Z");});

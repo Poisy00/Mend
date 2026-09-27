@@ -12,7 +12,7 @@
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate",
-    "test": "node --import tsx --test tests/auth.integration.test.ts tests/admin.integration.test.ts tests/follow-ups/rules.test.ts tests/follow-ups/time.test.ts tests/follow-ups/privacy.test.ts tests/schedule/rules.test.ts tests/schedule/privacy.test.ts tests/rcc/expedite.test.ts tests/rcc/drafts.test.ts tests/rcc/handoff.test.ts tests/rcc/technician-review.test.ts tests/rcc/quick-follow-up.test.ts tests/cases/rules.test.ts tests/cases/privacy.test.ts tests/cases/integration.test.ts"
+    "test": "node --import ./tests/helpers/cloudflare-loader.mjs --import tsx --test tests/auth.integration.test.ts tests/admin.integration.test.ts tests/follow-ups/rules.test.ts tests/follow-ups/time.test.ts tests/follow-ups/privacy.test.ts tests/schedule/rules.test.ts tests/schedule/privacy.test.ts tests/rcc/expedite.test.ts tests/rcc/drafts.test.ts tests/rcc/handoff.test.ts tests/rcc/technician-review.test.ts tests/rcc/quick-follow-up.test.ts tests/cases/rules.test.ts tests/cases/privacy.test.ts tests/cases/integration.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -1,0 +1,5 @@
+export type FollowUpStatus="pending"|"rescheduled"|"escalated"|"no_answer_once"|"voicemail_required"|"completed"|"abandoned"|"cancelled";
+export type FollowUp={id:string;ownerUserId:string;customerName:string;accountNumber:string;phoneNumber:string;reason:string;priority:"normal"|"urgent";dueAt:string;sourceTimezone:"Africa/Cairo"|"America/New_York";status:FollowUpStatus;attemptCount:number;voicemailRequired:boolean;voicemailLeft:boolean;completedAt:string|null;revision:number;notes:string};
+export type FollowUpBucket="overdue"|"now"|"soon"|"waiting"|"completed";
+export type FollowUpCommand={type:"busy"|"no_answer"|"confirm_voicemail"|"follow_up"|"escalation_required"|"resolved"|"wrong_number"|"cancel"|"restore"|"reschedule";dueAt?:string;voicemailLeft?:boolean};
+export type FollowUpEvent={type:string;at:string;summary:string;previous:FollowUpStatus;next:FollowUpStatus};
