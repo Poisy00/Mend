@@ -16,8 +16,7 @@ const tools: { id: Tool; label: string }[] = [
 export function RccWorkbench() {
   const [active, setActive] = useState<Tool>("expedite");
   return <div>
-    <div className="border-b border-border pb-7"><p className="text-sm font-medium text-primary">RCC DESK</p><h1 className="mt-2 text-4xl font-semibold tracking-[-.05em]">Dispatch, with clarity.</h1><p className="mt-3 text-muted-foreground">Prepare the right draft, keep your working text private, and move to Outlook when ready.</p></div>
-    <VercelTabs tabs={tools} activeTab={active} onTabChange={id => setActive(id as Tool)} label="RCC workflows" className="mt-3" />
+    <VercelTabs tabs={tools} activeTab={active} onTabChange={id => setActive(id as Tool)} label="RCC workflows" />
     <section role="tabpanel" id={`rcc-panel-${active}`} aria-labelledby={`rcc-tab-${active}`} tabIndex={0}>
       {active === "expedite" ? <ExpediteForm /> : active === "technician-review" ? <TechnicianReview /> : <QuickFollowUp />}
     </section>

@@ -18,6 +18,7 @@ type Props = {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  treatment?: "boxed" | "quiet";
   "aria-label"?: string;
 };
 
@@ -36,7 +37,7 @@ function display(value: string, mode: Mode) {
   return mode === "datetime" ? `${label} · ${timePart(value)}` : label;
 }
 
-export function MendDatePicker({ mode = "date", value, defaultValue = "", onValueChange, name, id, required, disabled, className, "aria-label": ariaLabel }: Props) {
+export function MendDatePicker({ mode = "date", value, defaultValue = "", onValueChange, name, id, required, disabled, className, treatment = "boxed", "aria-label": ariaLabel }: Props) {
   const [internal, setInternal] = useState(defaultValue);
   const [open, setOpen] = useState(false);
   const current = value === undefined ? internal : value;
@@ -64,7 +65,7 @@ export function MendDatePicker({ mode = "date", value, defaultValue = "", onValu
 
   return <Popover open={open} onOpenChange={setOpen}>
     <input key={current} type="hidden" name={name} defaultValue={current} required={required} />
-    <PopoverTrigger asChild><button id={id} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} className={cn("flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-3.5 text-left text-[13px] shadow-none transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-50", !current && "text-muted-foreground", className)}>
+    <PopoverTrigger asChild><button id={id} type="button" disabled={disabled} aria-label={ariaLabel} aria-expanded={open} data-treatment={treatment} className={cn("flex h-10 w-full items-center justify-between gap-2 rounded-xl border border-border bg-card px-3.5 text-left text-[13px] shadow-none transition-[border-color,background-color,box-shadow] duration-150 hover:border-primary/35 hover:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-50", treatment === "quiet" && "rounded-none border-0 border-b border-[var(--border-subtle)] bg-transparent px-0 text-[15px] font-medium text-[var(--text-primary)] hover:border-[var(--text-secondary)] hover:bg-transparent focus-visible:border-[var(--focus-ring)] focus-visible:ring-0 dark:bg-transparent", !current && "text-muted-foreground", className)}>
       <span className="truncate">{display(current, mode)}</span>{mode === "time" ? <Clock3 className="size-4 shrink-0 text-muted-foreground" /> : <CalendarDays className="size-4 shrink-0 text-muted-foreground" />}
     </button></PopoverTrigger>
     <PopoverContent align="start" sideOffset={6} onInteractOutside={event => { if ((event.target as Element).closest("[data-slot=select-content]")) event.preventDefault(); }} className="w-auto max-w-[calc(100vw-2rem)] rounded-2xl border-border bg-popover p-2 shadow-[0_16px_42px_-14px_rgba(20,18,30,.3)] [animation-duration:170ms]">

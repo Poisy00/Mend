@@ -30,7 +30,7 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/" className="flex min-h-9 items-center px-3">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mend-logo.svg" width="122" height="35" alt="Mend" className="h-auto w-[122px] dark:brightness-0 dark:invert" style={{ viewTransitionName: currentArea === "today" ? "mend-wordmark" : "none" }} />
+        <img src="/mend-logo.svg" width="122" height="35" alt="Mend" className="mend-logo h-auto w-[122px]" style={{ viewTransitionName: currentArea === "today" ? "mend-wordmark" : "none" }} />
       </a>
       <NavLinks currentArea={currentArea} />
       <div className="mt-auto border-t border-sidebar-border pt-4">
@@ -56,7 +56,7 @@ export function MendShell({ children, currentArea }: { children: React.ReactNode
           <SheetTitle className="text-left text-2xl tracking-tight">
             <span className="sr-only">Mend</span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/mend-logo.svg" width="122" height="35" alt="" className="h-auto w-[122px] dark:brightness-0 dark:invert" />
+            <img src="/mend-logo.svg" width="122" height="35" alt="" className="mend-logo h-auto w-[122px]" />
           </SheetTitle>
           <SheetDescription className="sr-only">Workspace navigation</SheetDescription>
         </SheetHeader>
