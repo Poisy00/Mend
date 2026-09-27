@@ -1,0 +1,1 @@
+ALTER TABLE `rcc_handoffs` ADD `source_encrypted` text;

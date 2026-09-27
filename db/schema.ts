@@ -307,6 +307,7 @@ export const rccHandoffs = sqliteTable("rcc_handoffs", {
   ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   workflow: text("workflow").notNull(),
   snapshotEncrypted: text("snapshot_encrypted").notNull(),
+  sourceEncrypted: text("source_encrypted"),
   status: text("status").notNull().default("prepared"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, table => [index("rcc_handoffs_owner_idx").on(table.ownerUserId, table.createdAt)]);
