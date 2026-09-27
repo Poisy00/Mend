@@ -41,6 +41,7 @@
 .input[aria-invalid="true"] { border-color: var(--login-danger); }
 .fieldError, .formError { margin: 0; color: var(--login-danger); font-size: 12px; line-height: 1.4; animation: errorReveal 150ms var(--login-enter) both; }
 .formError { font-size: 13px; }
+.formErrorSlot { min-height: 18px; margin: -9px 0; }
 .focusNode { position: absolute; z-index: 4; left: 12px; top: 0; width: 8px; height: 8px; border-radius: 50%; background: var(--login-iris); opacity: 0; box-shadow: 0 0 0 0 rgba(91,69,111,0); transition: transform 330ms cubic-bezier(.34,1.32,.64,1), opacity 120ms ease, box-shadow 180ms ease; pointer-events: none; }
 .focusVisible { opacity: 1; box-shadow: 0 0 0 3px rgba(91,69,111,.10); }
 
@@ -88,7 +89,6 @@
 .failed:hover { background: var(--login-danger); box-shadow: none; }
 .failed .left { animation: failLeft 540ms var(--login-enter) both; }
 .failed .right { animation: failRight 540ms var(--login-enter) both; }
-.cardFailed { animation: errorNudge 360ms var(--login-enter); }
 .cardSuccess { animation: cardExit 360ms var(--login-enter) both 320ms; }
 .divider { height: 1px; margin: 27px 0 20px; background: #f0eeea; }
 .help { margin: 0; text-align: center; color: var(--login-muted); font-size: 13px; line-height: 1.5; }
@@ -109,7 +109,6 @@
 @keyframes checkDraw { to { stroke-dashoffset: 0; } }
 @keyframes failLeft { 0% { transform: translateX(-86px); } 58% { transform: translateX(-5px); } 70% { transform: translateX(-5px); } 100% { transform: translateX(-42px); opacity: 0; } }
 @keyframes failRight { 0% { transform: translateX(86px); } 58% { transform: translateX(5px); } 70% { transform: translateX(5px); } 100% { transform: translateX(42px); opacity: 0; } }
-@keyframes errorNudge { 0%, 100% { transform: none; } 30% { transform: translateX(-3px); } 65% { transform: translateX(2px); } }
 
 @media (max-width: 760px) {
   .scene { justify-content: flex-start; padding-top: 58px; }
