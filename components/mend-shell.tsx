@@ -1,0 +1,51 @@
+"use client";
+import Link from "next/link";
+import { useState } from "react";
+import { CalendarDays, ChevronDown, ClipboardList, Headset, LayoutDashboard, Menu, PhoneForwarded, Plus, Settings2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/theme-toggle";
+
+export type Area = "today" | "follow-ups" | "rcc" | "cases" | "schedule";
+const navigation = [
+  { id: "today", label: "Today", href: "/", icon: LayoutDashboard },
+  { id: "follow-ups", label: "Follow-ups", href: "/follow-ups", icon: PhoneForwarded },
+  { id: "rcc", label: "RCC Dispatch", href: "/rcc", icon: Headset },
+  { id: "cases", label: "Cases", href: "/cases", icon: ClipboardList },
+  { id: "schedule", label: "Schedule", href: "/schedule", icon: CalendarDays },
+] as const;
+
+function NavLinks({ currentArea, close }: { currentArea: Area; close?: () => void }) {
+  return <nav aria-label="Workspace" className="mt-7 space-y-1">
+    {navigation.map(({ id, label, href, icon: Icon }) => <Link key={id} href={href} onClick={close} aria-current={currentArea === id ? "page" : undefined} className={"flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors hover:bg-sidebar-accent focus-visible:outline-ring " + (currentArea === id ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}>
+      <Icon aria-hidden="true" className="size-[18px]" /><span>{label}</span>
+    </Link>)}
+  </nav>;
+}
+
+export function MendShell({ children, currentArea }: { children: React.ReactNode; currentArea: Area }) {
+  const [open, setOpen] = useState(false);
+  return <div className="min-h-dvh bg-background text-foreground">
+    <aside className="fixed inset-y-0 left-0 z-20 hidden w-[238px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 md:flex">
+      <Link href="/" className="flex items-center gap-3 px-3 text-[22px] font-semibold tracking-[-.055em]"><span className="grid size-8 place-items-center rounded-[11px] bg-primary text-primary-foreground text-[19px]">m</span>Mend</Link>
+      <NavLinks currentArea={currentArea} />
+      <div className="mt-auto border-t border-sidebar-border pt-4">
+        <Link href="/settings" className="flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] text-muted-foreground hover:bg-sidebar-accent"><Settings2 className="size-[18px]" aria-hidden="true" />Settings</Link>
+        <p className="px-3 pt-3 text-xs text-muted-foreground">A clearer desk for every case.</p>
+      </div>
+    </aside>
+    <div className="md:pl-[238px]">
+      <header className="sticky top-0 z-10 flex h-[68px] items-center justify-between border-b border-border bg-background/95 px-5 backdrop-blur sm:px-8">
+        <div className="flex items-center gap-2">
+          <Button className="md:hidden" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></Button>
+          <div className="hidden text-sm text-muted-foreground sm:block">Workspace <span className="mx-2">/</span></div>
+          <span className="text-[15px] font-semibold">{navigation.find(item => item.id === currentArea)?.label}</span>
+          <ChevronDown className="size-4 text-muted-foreground md:hidden" aria-hidden="true" />
+        </div>
+        <div className="flex items-center gap-2"><ThemeToggle /><Button size="sm" asChild className="hidden sm:inline-flex"><Link href="/follow-ups/new"><Plus />New follow-up</Link></Button></div>
+      </header>
+      <main id="main-content" className="mx-auto w-full max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10">{children}</main>
+    </div>
+    <Sheet open={open} onOpenChange={setOpen}><SheetContent side="left" className="w-[280px] bg-sidebar p-5"><SheetHeader><SheetTitle className="text-left text-2xl tracking-tight">Mend</SheetTitle><SheetDescription className="sr-only">Workspace navigation</SheetDescription></SheetHeader><NavLinks currentArea={currentArea} close={() => setOpen(false)} /></SheetContent></Sheet>
+  </div>;
+}
