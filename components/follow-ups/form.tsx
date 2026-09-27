@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MendSelect } from "@/components/ui/mend-select";
+import { MendDatePicker } from "@/components/ui/mend-date-picker";
 
 const reasons = ["Customer requested callback", "Call disconnected", "Waiting for reboot/reset", "Make sure technician arrived", "Technician missed appointment window", "Technician go-back request", "Make sure service is stable", "Check appointment status", "Check escalation/update", "Verify issue resolution", "Continue troubleshooting", "Waiting for information", "Other"];
 type Zone = "Africa/Cairo" | "America/New_York";
@@ -19,6 +21,9 @@ export function FollowUpForm() {
   const draftQueue = useRef<Promise<void>>(Promise.resolve());
   const timer = useRef<number | undefined>(undefined);
   const [zone, setZone] = useState<Zone>("Africa/Cairo");
+  const [reason, setReason] = useState(reasons[0]);
+  const [priority, setPriority] = useState("normal");
+  const [dates, setDates] = useState({ dueAt: "", appointmentStart: "", appointmentEnd: "" });
   const [ready, setReady] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -28,6 +33,9 @@ export function FollowUpForm() {
       if (data.draft && formRef.current) {
         draftRevision.current = data.draft.revision;
         for (const [name, value] of Object.entries(data.draft.payload?.fields ?? {})) {
+          if (name === "reason") { setReason(value); continue; }
+          if (name === "priority") { setPriority(value); continue; }
+          if (name === "dueAt" || name === "appointmentStart" || name === "appointmentEnd") { setDates(previous => ({ ...previous, [name]: value })); continue; }
           const field = formRef.current.elements.namedItem(name);
           if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) field.value = value;
         }
@@ -96,13 +104,13 @@ export function FollowUpForm() {
         <div className="space-y-2"><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" name="accountNumber" required /></div>
         <div className="space-y-2"><Label htmlFor="phoneNumber">Phone number</Label><Input id="phoneNumber" name="phoneNumber" type="tel" required /></div>
         <div className="space-y-2"><Label htmlFor="caseNumber">Case number · optional</Label><Input id="caseNumber" name="caseNumber" /></div>
-        <div className="space-y-2"><Label htmlFor="reason">Reason</Label><select id="reason" name="reason" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">{reasons.map(reason => <option key={reason}>{reason}</option>)}</select></div>
-        <div className="space-y-2"><Label htmlFor="dueAt">Call back at</Label><Input id="dueAt" name="dueAt" type="datetime-local" required /></div>
-        <div className="space-y-2"><Label htmlFor="zone">Time zone</Label><select id="zone" value={zone} onChange={event => { const next = event.target.value as Zone; setZone(next); scheduleDraft(next); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="Africa/Cairo">Cairo time</option><option value="America/New_York">New York time</option></select></div>
-        <div className="space-y-2"><Label htmlFor="priority">Priority</Label><select id="priority" name="priority" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></div>
+        <div className="space-y-2"><Label htmlFor="reason">Reason</Label><MendSelect id="reason" name="reason" required value={reason} onValueChange={value => { setReason(value); window.requestAnimationFrame(() => scheduleDraft()); }} options={reasons.map(reason => ({ value: reason, label: reason }))} /></div>
+        <div className="space-y-2"><Label htmlFor="dueAt">Call back at</Label><MendDatePicker id="dueAt" name="dueAt" mode="datetime" value={dates.dueAt} onValueChange={value => { setDates(previous => ({ ...previous, dueAt: value })); window.requestAnimationFrame(() => scheduleDraft()); }} required /></div>
+        <div className="space-y-2"><Label htmlFor="zone">Time zone</Label><MendSelect id="zone" value={zone} onValueChange={value => { const next = value as Zone; setZone(next); scheduleDraft(next); }} options={[{ value: "Africa/Cairo", label: "Cairo time" }, { value: "America/New_York", label: "New York time" }]} /></div>
+        <div className="space-y-2"><Label htmlFor="priority">Priority</Label><MendSelect id="priority" name="priority" value={priority} onValueChange={value => { setPriority(value); window.requestAnimationFrame(() => scheduleDraft()); }} options={[{ value: "normal", label: "Normal" }, { value: "urgent", label: "Urgent" }]} /></div>
       </section>
       <div className="space-y-2 border-t border-border pt-7"><Label htmlFor="notes">Context and next step</Label><Textarea id="notes" name="notes" rows={5} placeholder="What should you know when it is time to call?" /></div>
-      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="promise">Promise to the customer · optional</Label><Textarea id="promise" name="promise" rows={3} /></div><div className="space-y-2"><Label htmlFor="completionCondition">What completes this follow-up? · optional</Label><Textarea id="completionCondition" name="completionCondition" rows={3} /></div><div className="space-y-2"><Label htmlFor="appointmentStart">Appointment starts · optional</Label><Input id="appointmentStart" name="appointmentStart" type="datetime-local" /></div><div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends · optional</Label><Input id="appointmentEnd" name="appointmentEnd" type="datetime-local" /></div></section>
+      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="promise">Promise to the customer · optional</Label><Textarea id="promise" name="promise" rows={3} /></div><div className="space-y-2"><Label htmlFor="completionCondition">What completes this follow-up? · optional</Label><Textarea id="completionCondition" name="completionCondition" rows={3} /></div><div className="space-y-2"><Label htmlFor="appointmentStart">Appointment starts · optional</Label><MendDatePicker id="appointmentStart" name="appointmentStart" mode="datetime" value={dates.appointmentStart} onValueChange={value => { setDates(previous => ({ ...previous, appointmentStart: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div><div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends · optional</Label><MendDatePicker id="appointmentEnd" name="appointmentEnd" mode="datetime" value={dates.appointmentEnd} onValueChange={value => { setDates(previous => ({ ...previous, appointmentEnd: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div></section>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><a href="/follow-ups">Cancel</a></Button><Button type="submit" className="min-w-[160px]" disabled={pending || !ready}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
     </form>

@@ -1,4 +1,5 @@
 "use client";
+import { MendDatePicker } from "@/components/ui/mend-date-picker";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ export function WeeklyGrid() {
       <h2 className="text-xl font-semibold">One-day exception</h2>
       <p className="mt-2 text-sm text-muted-foreground">Override the repeating pattern for one Cairo calendar date.</p>
       <div className="mt-5 flex flex-wrap items-end gap-4">
-        <label className="space-y-2"><span className="block text-sm font-medium">Cairo date</span><Input type="date" value={exceptionDate} onChange={event => { const date = event.target.value; setExceptionDate(date); const old = exceptions.find(item => item.date === date); setExceptionPlan(old?.plan ?? blankDay()); }} /></label>
+        <label className="space-y-2"><span className="block text-sm font-medium">Cairo date</span><MendDatePicker mode="date" value={exceptionDate} onValueChange={date => { setExceptionDate(date); const old = exceptions.find(item => item.date === date); setExceptionPlan(old?.plan ?? blankDay()); }} aria-label="Cairo date" /></label>
         <label className="flex h-9 items-center gap-2 text-sm"><input type="checkbox" checked={exceptionPlan.off} onChange={event => setExceptionPlan(current => ({ ...current, off: event.target.checked, breaks: [], lunch: null }))} />Day off</label>
         {!exceptionPlan.off && <><label className="space-y-2"><span className="block text-sm font-medium">Start</span><Input type="time" value={exceptionPlan.start} onChange={event => setExceptionPlan(current => ({ ...current, start: event.target.value }))} /></label><label className="space-y-2"><span className="block text-sm font-medium">End</span><Input type="time" value={exceptionPlan.end} onChange={event => setExceptionPlan(current => ({ ...current, end: event.target.value }))} /></label></>}
         <Button onClick={saveException}>Save exception</Button>
