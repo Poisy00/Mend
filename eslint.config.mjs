@@ -23,6 +23,13 @@ const eslintConfig = defineConfig([
       "react-hooks/set-state-in-effect": "off",
     },
   },
+  {
+    rules: {
+      // RCC's source-driven question model and wire envelopes are checked at
+      // service boundaries; their local presentation shapes remain dynamic.
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

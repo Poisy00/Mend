@@ -296,6 +296,12 @@ export const rccDrafts = sqliteTable("rcc_drafts", {
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, table => [uniqueIndex("rcc_drafts_owner_workflow_uq").on(table.ownerUserId, table.workflow)]);
 
+export const rccPreferences = sqliteTable("rcc_preferences", {
+  ownerUserId: text("owner_user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  settingsEncrypted: text("settings_encrypted").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const rccHandoffs = sqliteTable("rcc_handoffs", {
   id: text("id").primaryKey(),
   ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

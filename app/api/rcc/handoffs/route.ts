@@ -1,0 +1,4 @@
+import { z } from "zod";import { requireWorkspaceSession } from "@/lib/server/auth";import { prepareRccHandoff } from "@/lib/server/rcc";import { errorJson,json,parseJson,requireSameOrigin } from "@/lib/server/http";
+const schema=z.object({workflow:z.enum(["expedite","technician-review","quick-follow-up"]),draftRevision:z.number().int().positive()}).strict();
+export async function POST(request:Request){try{requireSameOrigin(request);const user=await requireWorkspaceSession(request);if(!user)return errorJson(401,"Authentication required");const input=await parseJson(request,schema);return json({handoff:await prepareRccHandoff(user.id,input.workflow,input.draftRevision)},{status:201});}catch(error){if(error instanceof Error&&error.message==="STALE_REVISION")return errorJson(409,"Draft changed elsewhere");return errorJson(400,error instanceof Error?error.message:"Unable to prepare handoff");}}
+

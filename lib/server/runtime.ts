@@ -8,7 +8,7 @@ export type RuntimeBindings = {
   BOOTSTRAP_ADMIN_PASSWORD?: string;
   BOOTSTRAP_USER_USERNAME?: string;
   BOOTSTRAP_USER_PASSWORD?: string;
-  OWNER_RECOVERY_EMAIL?: string;
+  OWNER_RECOVERY_TOKEN?: string;
 };
 
 let testBindings: RuntimeBindings | undefined;

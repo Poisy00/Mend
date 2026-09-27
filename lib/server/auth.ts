@@ -5,7 +5,7 @@ import { readCookie, safeUserAgent, SESSION_COOKIE } from "./http";
 const SESSION_ABSOLUTE_SECONDS = 12 * 60 * 60;
 const SESSION_IDLE_SECONDS = 30 * 60;
 const LOCKOUT_MINUTES = 15;
-const DUMMY_PASSWORD_HASH = "pbkdf2-sha256$600000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const DUMMY_PASSWORD_HASH = "pbkdf2-sha256$100000$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
 
 export type SessionUser = {
   id: string;
@@ -233,11 +233,10 @@ export async function login(username: string, password: string, request: Request
   return { session, user };
 }
 
-export async function recoverAdministrator(nextPassword: string, request: Request) {
+export async function recoverAdministrator(nextPassword: string, recoveryToken: string, request: Request) {
   const runtime = bindings();
-  const expectedEmail = runtime.OWNER_RECOVERY_EMAIL?.trim().toLocaleLowerCase("en-US");
-  const signedInEmail = request.headers.get("oai-authenticated-user-email")?.trim().toLocaleLowerCase("en-US");
-  if (!expectedEmail || !signedInEmail || signedInEmail !== expectedEmail) return null;
+  const expectedToken = runtime.OWNER_RECOVERY_TOKEN?.trim();
+  if (!expectedToken || expectedToken.length < 32 || !recoveryToken || await sha256(recoveryToken) !== await sha256(expectedToken)) return null;
 
   const admin = await runtime.DB.prepare(
     "SELECT id FROM users WHERE role = 'admin' LIMIT 1",
@@ -300,6 +299,11 @@ export async function requireSession(request: Request, role?: "admin") {
   const session = await getSession(request);
   if (!session || (role && session.role !== role)) return null;
   return session;
+}
+
+export async function requireWorkspaceSession(request: Request) {
+  const session = await getSession(request);
+  return session && !session.mustChangePassword ? session : null;
 }
 
 export async function revokeCurrentSession(request: Request) {

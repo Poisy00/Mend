@@ -1,0 +1,1 @@
+import { MendShell } from "@/components/mend-shell";import { CaseQueue } from "@/components/cases/queue";export default function CasesPage(){return <MendShell currentArea="cases"><CaseQueue /></MendShell>;}

@@ -1,0 +1,4 @@
+import type { CaseSource,CaseStatus,SaveCaseInput } from "./types";
+export const categories=["Appointment","Service","Technician visit","Escalation","Other"] as const;
+export function statusForSource(source:CaseSource):CaseStatus{if(source.type==="follow-up")return ["completed","abandoned","cancelled"].includes(source.status)?"Closed":"Follow-up scheduled";if(source.type==="rcc-handoff")return "Handoff prepared";return "Open";}
+export function validateCase(input:SaveCaseInput){if(!input.customerName.trim()&&!input.accountNumber.trim())throw new Error("Add a customer name or account number");if(!input.summary.trim())throw new Error("Add a case summary");if(!categories.includes(input.category as typeof categories[number]))throw new Error("Choose a valid category");if(!["High","Medium","Low"].includes(input.priority))throw new Error("Choose a valid priority");}
