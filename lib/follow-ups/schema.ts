@@ -1,0 +1,3 @@
+import { z } from "zod";
+
+export const followUpProfileSchema=z.object({customerName:z.string().trim().max(120),accountNumber:z.string().trim().min(1).max(80),phoneNumber:z.string().trim().min(1).max(80),caseNumber:z.string().max(80).optional(),reason:z.string().trim().min(1).max(120),priority:z.enum(["normal","urgent"]),dueAt:z.string().datetime(),sourceTimezone:z.enum(["Africa/Cairo","America/New_York"]),notes:z.string().max(3000).optional(),promise:z.string().max(1000).optional(),completionCondition:z.string().max(1000).optional(),appointmentStartUtc:z.string().datetime().nullable().optional(),appointmentEndUtc:z.string().datetime().nullable().optional()}).strict();

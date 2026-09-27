@@ -74,7 +74,9 @@ export function FollowUpForm() {
     try {
       await draftQueue.current;
       const dueAt = wallTimeToUtc(String(form.get("dueAt")), zone);
-      const input = { customerName: form.get("customerName"), accountNumber: form.get("accountNumber"), phoneNumber: form.get("phoneNumber"), reason: form.get("reason"), priority: form.get("priority"), dueAt, sourceTimezone: zone, notes: form.get("notes") };
+      const appointmentStartUtc = form.get("appointmentStart") ? wallTimeToUtc(String(form.get("appointmentStart")), zone) : null;
+      const appointmentEndUtc = form.get("appointmentEnd") ? wallTimeToUtc(String(form.get("appointmentEnd")), zone) : null;
+      const input = { customerName: form.get("customerName"), accountNumber: form.get("accountNumber"), phoneNumber: form.get("phoneNumber"), caseNumber: form.get("caseNumber"), reason: form.get("reason"), priority: form.get("priority"), dueAt, sourceTimezone: zone, notes: form.get("notes"), promise: form.get("promise"), completionCondition: form.get("completionCondition"), appointmentStartUtc, appointmentEndUtc };
       const response = await fetch("/api/follow-ups", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
       const data = await response.json() as { error?: string };
       if (!response.ok) throw new Error(data.error ?? "Unable to create follow-up");
@@ -94,15 +96,17 @@ export function FollowUpForm() {
     <p className="mt-3 text-muted-foreground">Capture what to call about and when. The queue will bring it back at the right time.</p>
     <form ref={formRef} onInput={() => scheduleDraft()} onSubmit={submit} className="mt-9 space-y-8">
       <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2">
-        <div className="space-y-2"><Label htmlFor="customerName">Customer name</Label><Input id="customerName" name="customerName" required /></div>
+        <div className="space-y-2"><Label htmlFor="customerName">Customer name · optional</Label><Input id="customerName" name="customerName" /></div>
         <div className="space-y-2"><Label htmlFor="accountNumber">Account number</Label><Input id="accountNumber" name="accountNumber" required /></div>
         <div className="space-y-2"><Label htmlFor="phoneNumber">Phone number</Label><Input id="phoneNumber" name="phoneNumber" type="tel" required /></div>
+        <div className="space-y-2"><Label htmlFor="caseNumber">Case number · optional</Label><Input id="caseNumber" name="caseNumber" /></div>
         <div className="space-y-2"><Label htmlFor="reason">Reason</Label><select id="reason" name="reason" required className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">{reasons.map(reason => <option key={reason}>{reason}</option>)}</select></div>
         <div className="space-y-2"><Label htmlFor="dueAt">Call back at</Label><Input id="dueAt" name="dueAt" type="datetime-local" required /></div>
         <div className="space-y-2"><Label htmlFor="zone">Time zone</Label><select id="zone" value={zone} onChange={event => { const next = event.target.value as Zone; setZone(next); scheduleDraft(next); }} className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="Africa/Cairo">Cairo time</option><option value="America/New_York">New York time</option></select></div>
         <div className="space-y-2"><Label htmlFor="priority">Priority</Label><select id="priority" name="priority" className="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="normal">Normal</option><option value="urgent">Urgent</option></select></div>
       </section>
       <div className="space-y-2 border-t border-border pt-7"><Label htmlFor="notes">Context and next step</Label><Textarea id="notes" name="notes" rows={5} placeholder="What should you know when it is time to call?" /></div>
+      <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="promise">Promise to the customer · optional</Label><Textarea id="promise" name="promise" rows={3} /></div><div className="space-y-2"><Label htmlFor="completionCondition">What completes this follow-up? · optional</Label><Textarea id="completionCondition" name="completionCondition" rows={3} /></div><div className="space-y-2"><Label htmlFor="appointmentStart">Appointment starts · optional</Label><Input id="appointmentStart" name="appointmentStart" type="datetime-local" /></div><div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends · optional</Label><Input id="appointmentEnd" name="appointmentEnd" type="datetime-local" /></div></section>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><Link href="/follow-ups">Cancel</Link></Button><Button type="submit" className="min-w-[160px]" disabled={pending || !ready}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
     </form>
