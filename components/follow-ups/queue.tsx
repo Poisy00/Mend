@@ -13,6 +13,7 @@ import { WorkListHeader, WorkRow } from "@/components/ui/work-row";
 import { WorkRowSkeleton } from "@/components/workspace-skeleton";
 import { MendLink as Link } from "@/components/mend-link";
 import { FollowUpDetail } from "./detail";
+import { useMobileDetail } from "@/components/use-mobile-detail";
 
 type Page = { items: FollowUp[]; nextCursor: string | null };
 
@@ -25,6 +26,7 @@ export function FollowUpQueue({ initialPage }: { initialPage: Page }) {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useMobileDetail();
   const [now, setNow] = useState(0);
   const notified=useRef(new Set<string>());
   const [notificationsEnabled,setNotificationsEnabled]=useState(false);
@@ -53,13 +55,13 @@ export function FollowUpQueue({ initialPage }: { initialPage: Page }) {
         {loading ? <div className="py-4" aria-label="Loading follow-ups"><WorkRowSkeleton count={5} /></div> : visible.length === 0 ? <div className="grid min-h-[340px] place-items-center text-center"><div><span className="mx-auto grid size-11 place-items-center rounded-xl bg-accent text-primary"><PhoneForwarded className="size-5"/></span><h2 className="mt-4 text-lg font-semibold">No follow-ups here yet</h2><p className="mt-1 text-sm text-muted-foreground">Create one to keep the next call in sight.</p></div></div> : <div><WorkListHeader detail="Status / due" />{visible.map(item => {
           const status = classifyFollowUp(item, now).replaceAll("_", " ");
           const closed = ["completed", "abandoned", "cancelled"].includes(item.status);
-          return <WorkRow key={item.id} title={item.customerName || item.accountNumber} subtitle={item.reason} eyebrow={item.caseNumber || item.accountNumber} meta={new Date(item.dueAt).toLocaleString("en-US", { timeZone: item.sourceTimezone, dateStyle: "medium", timeStyle: "short" })} status={status} tone={closed ? "complete" : Date.parse(item.dueAt) <= now ? "urgent" : "default"} selected={selected?.id === item.id} onClick={() => { setSelected(item); setMobileOpen(true); }} />;
+          return <WorkRow key={item.id} title={item.customerName || item.accountNumber} subtitle={item.reason} eyebrow={item.caseNumber || item.accountNumber} meta={new Date(item.dueAt).toLocaleString("en-US", { timeZone: item.sourceTimezone, dateStyle: "medium", timeStyle: "short" })} status={status} tone={closed ? "complete" : Date.parse(item.dueAt) <= now ? "urgent" : "default"} selected={selected?.id === item.id} onClick={() => { setSelected(item); setMobileOpen(isMobile); }} />;
         })}</div>}
         {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="outline" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more follow-ups"}</Button>}
       </section>
       <aside className="hidden min-[1100px]:block min-[1100px]:pl-7">{selected ? <FollowUpDetail item={selected} onAction={act} onSaveProfile={saveProfile}/> : <div className="grid min-h-[380px] place-items-center text-center text-sm text-muted-foreground">Select a follow-up to see its details and next actions.</div>}</aside>
     </div>
-    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px] min-[1100px]:hidden"><SheetHeader><SheetTitle>Follow-up</SheetTitle><SheetDescription>Details and next actions</SheetDescription></SheetHeader>{selected && <FollowUpDetail item={selected} onAction={act} onSaveProfile={saveProfile}/>}</SheetContent></Sheet>
+    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Follow-up</SheetTitle><SheetDescription>Details and next actions</SheetDescription></SheetHeader>{selected && <FollowUpDetail item={selected} onAction={act} onSaveProfile={saveProfile}/>}</SheetContent></Sheet>
   </div>;
 }

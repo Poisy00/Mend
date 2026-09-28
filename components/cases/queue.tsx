@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { WorkListHeader, WorkRow } from "@/components/ui/work-row";
 import { WorkRowSkeleton } from "@/components/workspace-skeleton";
 import type { CaseRecord, CaseStatus } from "@/lib/cases/types";
+import { useMobileDetail } from "@/components/use-mobile-detail";
 
 type Page = { items: CaseRecord[]; nextCursor: string | null };
 type History = { id: string; type: string; createdAt: string };
@@ -26,6 +27,7 @@ export function CaseQueue({ initialPage }: { initialPage: Page }) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useMobileDetail();
   const firstSearch = useRef(true);
 
   useEffect(() => { const timer = window.setTimeout(() => setQuery(search.trim()), 250); return () => window.clearTimeout(timer); }, [search]);
@@ -65,7 +67,7 @@ export function CaseQueue({ initialPage }: { initialPage: Page }) {
     setSelected(item);
     setHistory([]);
     setHistoryLoading(true);
-    setMobileOpen(true);
+    setMobileOpen(isMobile);
     try { const response = await fetch(`/api/cases/${item.id}`);
       if (response.ok) setHistory(((await response.json()) as { history: History[] }).history);
     } finally { setHistoryLoading(false); }
@@ -118,7 +120,6 @@ export function CaseQueue({ initialPage }: { initialPage: Page }) {
       </section>
       <aside className="hidden min-[1100px]:block min-[1100px]:pl-7">{detail}</aside>
     </div>
-    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px] min-[1100px]:hidden"><SheetHeader><SheetTitle>Case details</SheetTitle><SheetDescription>Saved work and history</SheetDescription></SheetHeader>{detail}</SheetContent></Sheet>
+    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Case details</SheetTitle><SheetDescription>Saved work and history</SheetDescription></SheetHeader>{detail}</SheetContent></Sheet>
   </div>;
 }
-

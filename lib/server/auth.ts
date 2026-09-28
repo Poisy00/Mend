@@ -15,6 +15,7 @@ export type SessionUser = {
   mustChangePassword: boolean;
   sessionId: string;
   expiresAt: string;
+  idleExpiresAt: string;
 };
 
 type UserRow = {
@@ -258,12 +259,12 @@ export async function recoverAdministrator(nextPassword: string, recoveryToken: 
   return nextSession;
 }
 
-export async function getSession(request: Request): Promise<SessionUser | null> {
+export async function getSession(request: Request, options: { touch?: boolean } = {}): Promise<SessionUser | null> {
   const rawToken = readCookie(request, SESSION_COOKIE);
-  return getSessionByToken(rawToken);
+  return getSessionByToken(rawToken, options);
 }
 
-export async function getSessionByToken(rawToken: string | null | undefined): Promise<SessionUser | null> {
+export async function getSessionByToken(rawToken: string | null | undefined, options: { touch?: boolean } = {}): Promise<SessionUser | null> {
   if (!rawToken) return null;
   const tokenHash = await sha256(rawToken);
   const row = await bindings().DB.prepare(
@@ -277,12 +278,15 @@ export async function getSessionByToken(rawToken: string | null | undefined): Pr
     status: "active" | "disabled"; must_change_password: number;
   }>();
   if (!row || row.status !== "active" || Date.parse(row.expires_at) <= Date.now()) return null;
-  if (parseStoredTimestamp(row.last_seen_at) + SESSION_IDLE_SECONDS * 1000 <= Date.now()) {
+  let idleExpiresAt = parseStoredTimestamp(row.last_seen_at) + SESSION_IDLE_SECONDS * 1000;
+  if (idleExpiresAt <= Date.now()) {
     await bindings().DB.prepare("UPDATE sessions SET revoked_at = CURRENT_TIMESTAMP WHERE id = ?").bind(row.session_id).run();
     return null;
   }
-  if (parseStoredTimestamp(row.last_seen_at) + 5 * 60_000 <= Date.now()) {
+  if (options.touch !== false && parseStoredTimestamp(row.last_seen_at) + 5 * 60_000 <= Date.now()) {
     await bindings().DB.prepare("UPDATE sessions SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?").bind(row.session_id).run();
+    // The database timestamp is rounded to seconds.
+    idleExpiresAt = Date.now() + SESSION_IDLE_SECONDS * 1000 - 1000;
   }
   return {
     id: row.id,
@@ -292,6 +296,7 @@ export async function getSessionByToken(rawToken: string | null | undefined): Pr
     mustChangePassword: Boolean(row.must_change_password),
     sessionId: row.session_id,
     expiresAt: row.expires_at,
+    idleExpiresAt: new Date(idleExpiresAt).toISOString(),
   };
 }
 

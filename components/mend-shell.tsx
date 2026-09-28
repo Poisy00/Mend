@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { MendLink } from "@/components/mend-link";
 import { CalendarDays, ChevronDown, ClipboardList, Headset, LayoutDashboard, Menu, PhoneForwarded, Settings2 } from "lucide-react";
@@ -38,6 +38,57 @@ export function MendShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currentArea = areaFromPathname(pathname);
   const [open, setOpen] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let expiryCheck: ReturnType<typeof setTimeout> | undefined;
+    const originalFetch = window.fetch.bind(window);
+    const leaveDesk = () => {
+      if (!active) return;
+      setSessionExpired(true);
+      window.location.replace("/login");
+    };
+    const checkSession = async () => {
+      try {
+        const response = await originalFetch("/api/auth/me", { cache: "no-store" });
+        if (!active) return;
+        if (response.status === 401) return leaveDesk();
+        if (!response.ok) return;
+        const { expiresAt, idleExpiresAt } = await response.json() as { expiresAt: string; idleExpiresAt: string };
+        clearTimeout(expiryCheck);
+        const deadline = Math.min(Date.parse(expiresAt), Date.parse(idleExpiresAt));
+        if (Number.isFinite(deadline)) {
+          expiryCheck = setTimeout(checkSession, Math.max(1000, deadline - Date.now() + 250));
+        }
+      } catch {
+        // Temporary network failures should not discard a valid session.
+      }
+    };
+    window.fetch = async (input, init) => {
+      const response = await originalFetch(input, init);
+      const url = new URL(input instanceof Request ? input.url : String(input), window.location.href);
+      if (response.status === 401 && url.origin === window.location.origin && url.pathname.startsWith("/api/")) leaveDesk();
+      return response;
+    };
+    const checkOnReturn = () => { if (document.visibilityState === "visible") void checkSession(); };
+    document.addEventListener("visibilitychange", checkOnReturn);
+    window.addEventListener("focus", checkOnReturn);
+    window.addEventListener("pageshow", checkOnReturn);
+    const interval = setInterval(checkSession, 30_000);
+    void checkSession();
+    return () => {
+      active = false;
+      clearTimeout(expiryCheck);
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", checkOnReturn);
+      window.removeEventListener("focus", checkOnReturn);
+      window.removeEventListener("pageshow", checkOnReturn);
+      window.fetch = originalFetch;
+    };
+  }, []);
+
+  if (sessionExpired) return null;
   return <div className="min-h-dvh bg-background text-foreground">
     <aside className="fixed inset-y-0 left-0 z-20 hidden w-[238px] flex-col border-r border-sidebar-border bg-sidebar px-4 py-6 md:flex">
       <MendLink href="/" className="flex min-h-9 items-center px-3">
