@@ -2,7 +2,7 @@ import { getSession } from "../../../../lib/server/auth";
 import { errorJson, json } from "../../../../lib/server/http";
 
 export async function GET(request: Request) {
-  const session = await getSession(request);
+  const session = await getSession(request, { touch: false });
   if (!session) return errorJson(401, "Authentication required");
   return json({
     user: {
@@ -13,5 +13,6 @@ export async function GET(request: Request) {
       mustChangePassword: session.mustChangePassword,
     },
     expiresAt: session.expiresAt,
+    idleExpiresAt: session.idleExpiresAt,
   });
 }

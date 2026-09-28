@@ -1,6 +1,11 @@
 import type { ExpediteInput, RccPreferences } from "./types";
 
 export const DEFAULT_EXPEDITE_ACTION = "Kindly review this account for the earliest available technician appointment or any available opportunity to expedite the scheduled visit.";
+export const APPOINTMENT_WINDOWS = ["8:00 AM – 11:00 AM", "9:00 AM – 12:00 PM", "11:00 AM – 2:00 PM", "2:00 PM – 5:00 PM", "3:00 PM – 6:00 PM"] as const;
+export const CUSTOM_APPOINTMENT_WINDOW = "Custom window";
+export function appointmentWindow(input: ExpediteInput) {
+  return input.window === CUSTOM_APPOINTMENT_WINDOW ? input.customWindow?.trim() || "" : input.window?.trim() || "";
+}
 
 export const EXPEDITE_TEMPLATES = [
   { id: "no-internet", label: "No Internet", reason: "No Working Service", summary: "The customer is currently without internet service. Standard troubleshooting has been completed, but service remains unavailable." },

@@ -3,6 +3,8 @@ function parts(date:Date,zone:SourceZone){
   const values=new Intl.DateTimeFormat("en-CA",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(date);
   return Object.fromEntries(values.map(part=>[part.type,part.value]));
 }
+export function wallDateTime(date:Date,zone:SourceZone){const p=parts(date,zone);return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;}
+export function callbackPresetWallTime(minutes:number,zone:SourceZone,now=new Date()){return wallDateTime(new Date(now.getTime()+minutes*60_000),zone);}
 export function wallTimeToUtc(local:string,zone:SourceZone,disambiguation?:"earlier"|"later"):string {
   const match=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(local);
   if(!match)throw new Error("Use YYYY-MM-DDTHH:mm");

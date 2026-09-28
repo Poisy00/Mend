@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { emptyWeek, validateWeeklyPattern, type DayPlan, type Pause, type WeekPattern } from "@/lib/schedule/rules";
+import { applyDayToWeek, emptyWeek, validateWeeklyPattern, type DayPlan, type Pause, type WeekPattern } from "@/lib/schedule/rules";
 
 const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const blankDay = (): DayPlan => ({ off: false, start: "09:00", end: "17:00", breaks: [], lunch: null });
@@ -71,6 +71,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
             {day.lunch ? <div className="flex flex-wrap items-center gap-2"><span className="w-20 text-sm">Lunch</span><Input aria-label={days[index] + " lunch start"} type="time" className="w-[145px]" value={day.lunch.start} onChange={event => patchDay(index, updatePause(day, "lunch", 0, "start", event.target.value))} /><span>to</span><Input aria-label={days[index] + " lunch end"} type="time" className="w-[145px]" value={day.lunch.end} onChange={event => patchDay(index, updatePause(day, "lunch", 0, "end", event.target.value))} /><Button variant="ghost" size="sm" onClick={() => patchDay(index, { lunch: null })}>Remove</Button></div> : <Button variant="outline" size="sm" onClick={() => patchDay(index, { lunch: { start: "13:00", end: "13:30" } })}>Add 30-minute lunch</Button>}
           </div>
         </details>}
+        {!day.off && <Button variant="ghost" size="sm" className="mt-3" onClick={() => { const copied=applyDayToWeek(day);const result=validateWeeklyPattern(copied);if(!result.valid){toast.error(result.errors[0]);return;}setWeek(copied);toast.success(`${days[index]} copied to all seven days. Save the work week to keep it.`); }}>Apply this day’s schedule to all days</Button>}
       </div>)}
     </div>
     <div className="mt-6 flex justify-end"><Button onClick={saveWeek} disabled={pending} className="min-w-[150px]">{pending ? "Saving…" : "Save work week"}</Button></div>

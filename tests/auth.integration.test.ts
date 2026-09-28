@@ -5,6 +5,7 @@ import { setRuntimeBindings } from "../lib/server/runtime";
 import { encryptCustomerValue, decryptCustomerValue } from "../lib/server/crypto";
 import { login, getSessionByToken, revokeCurrentSession } from "../lib/server/auth";
 import { POST as loginRoute } from "../app/api/auth/login/route";
+import { GET as meRoute } from "../app/api/auth/me/route";
 
 test("Mend sign-in issues a protected session and revocation ends it", async () => {
   const { db, dispose } = await freshDatabase();
@@ -31,4 +32,25 @@ test("Mend sign-in issues a protected session and revocation ends it", async () 
 test("cross-origin sign-in is rejected", async () => {
   const response = await loginRoute(new Request("https://mend.test/api/auth/login", { method: "POST", headers: { origin: "https://other.test", "content-type": "application/json" }, body: JSON.stringify({ username: "admin", password: "anything" }) }));
   assert.equal(response.status, 400);
+});
+
+test("session checks detect idle expiry without keeping the desk signed in", async () => {
+  const { db, dispose } = await freshDatabase();
+  setRuntimeBindings({ DB: db, AUTH_PEPPER: "a-long-test-only-pepper", DATA_ENCRYPTION_KEY: "nKPhcCMGUx0OEUoVfC50LPCPbNGy7kdNQTpDqtwPpXU", BOOTSTRAP_ADMIN_USERNAME: "admin", BOOTSTRAP_ADMIN_PASSWORD: "initial-password-123" });
+  try {
+    const result = await login("admin", "initial-password-123", new Request("https://mend.test/api/auth/login"));
+    assert.ok(result);
+    const request = new Request("https://mend.test/api/auth/me", { headers: { cookie: `mend_session=${result.session.rawToken}` } });
+    await db.prepare("UPDATE sessions SET last_seen_at = datetime('now', '-10 minutes') WHERE id = ?").bind(result.session.id).run();
+    const before = await db.prepare("SELECT last_seen_at FROM sessions WHERE id = ?").bind(result.session.id).first<{ last_seen_at: string }>();
+    const response = await meRoute(request);
+    assert.equal(response.status, 200);
+    const body = await response.json() as { idleExpiresAt: string; expiresAt: string };
+    assert.ok(Date.parse(body.idleExpiresAt) < Date.parse(body.expiresAt));
+    const after = await db.prepare("SELECT last_seen_at FROM sessions WHERE id = ?").bind(result.session.id).first<{ last_seen_at: string }>();
+    assert.equal(after?.last_seen_at, before?.last_seen_at);
+
+    await db.prepare("UPDATE sessions SET last_seen_at = datetime('now', '-31 minutes') WHERE id = ?").bind(result.session.id).run();
+    assert.equal((await meRoute(request)).status, 401);
+  } finally { setRuntimeBindings(undefined); await dispose(); }
 });
