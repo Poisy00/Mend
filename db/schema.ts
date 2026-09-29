@@ -338,3 +338,46 @@ export const caseEvents = sqliteTable("case_events", {
   payloadEncrypted: text("payload_encrypted").notNull(),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, table => [index("case_events_owner_case_idx").on(table.ownerUserId, table.caseId, table.createdAt)]);
+
+export const aiConnections = sqliteTable("ai_connections", {
+  ownerUserId: text("owner_user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  provider: text("provider").notNull().default("openai"),
+  authType: text("auth_type").notNull().default("chatgpt_device_oauth"),
+  credentialsEncrypted: text("credentials_encrypted").notNull(),
+  externalAccountId: text("external_account_id"),
+  accountLabel: text("account_label"),
+  status: text("status").notNull().default("connected"),
+  tokenExpiresAt: text("token_expires_at"),
+  connectedAt: text("connected_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  lastUsedAt: text("last_used_at"),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const aiPendingAuth = sqliteTable("ai_pending_auth", {
+  ownerUserId: text("owner_user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: text("session_id").notNull().references(() => sessions.id, { onDelete: "cascade" }),
+  deviceEncrypted: text("device_encrypted").notNull(),
+  expiresAt: text("expires_at").notNull(),
+  nextPollAt: text("next_poll_at").notNull(),
+  pollLeaseUntil: text("poll_lease_until"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const aiThreads = sqliteTable("ai_threads", {
+  id: text("id").primaryKey(),
+  ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  provider: text("provider").notNull().default("openai"),
+  model: text("model"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => [index("ai_threads_owner_updated_idx").on(table.ownerUserId, table.updatedAt)]);
+
+export const aiMessages = sqliteTable("ai_messages", {
+  id: text("id").primaryKey(),
+  threadId: text("thread_id").notNull().references(() => aiThreads.id, { onDelete: "cascade" }),
+  ownerUserId: text("owner_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  contentEncrypted: text("content_encrypted").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, table => [index("ai_messages_owner_thread_idx").on(table.ownerUserId, table.threadId, table.createdAt)]);

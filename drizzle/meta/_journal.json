@@ -29,6 +29,13 @@
       "when": 1790478903299,
       "tag": "0003_sticky_wendigo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790644355759,
+      "tag": "0004_odd_mattie_franklin",
+      "breakpoints": true
     }
   ]
 }

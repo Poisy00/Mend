@@ -17,6 +17,7 @@
 | **RCC Dispatch** | Builds appointment expedite and technician review requests from saved facts. It formats identifiers, offers standard or custom appointment windows, and creates a rich email for Outlook. |
 | **Cases** | Keeps longer-running work and its history alongside the desk. An RCC handoff can also become a Case. |
 | **Schedule** | Repeats a weekly Cairo pattern with dated exceptions. A completed day can be applied across the week. |
+| **Ask Mend** | Connects a user's ChatGPT account from Settings, then opens a workspace drawer for conversations, case lookup, and scoped RCC and follow-up actions. |
 
 The email preview gives the escalation team a clear hierarchy: customer and account details, callback number, appointment window, reason, and relevant context. Long Island and Nassau Quota have distinct color cues. The Outlook handoff copies formatted HTML to the clipboard and opens a draft; the completed RCC draft moves into history so the form is ready for the next request.
 
@@ -41,10 +42,15 @@ node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1
 | --- | --- |
 | `AUTH_PEPPER` | Password hashing secret, independent of the encryption key. |
 | `DATA_ENCRYPTION_KEY` | Stable AES-GCM key material for customer records, drafts, and history. |
+| `AI_CREDENTIALS_ENCRYPTION_KEY` | Separate stable 32-byte base64url AES-GCM key for ChatGPT OAuth credentials, authorization state, and Ask Mend messages. Generate with `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. |
 | `BOOTSTRAP_ADMIN_USERNAME` | Initial administrator username. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | Initial temporary password, at least 12 characters. |
 
 The Site binds D1 as `DB` through `.openai/hosting.json`. Optional owner recovery uses a separate `OWNER_RECOVERY_TOKEN` of at least 32 characters. Agent accounts are created by the administrator in Mend; `BOOTSTRAP_USER_*` is unused.
+
+### Ask Mend setup
+
+Apply `drizzle/0004_odd_mattie_franklin.sql` to the existing D1 database and set `AI_CREDENTIALS_ENCRYPTION_KEY` as a deployment secret before using Ask Mend. The key must remain stable: changing it makes existing credentials and conversations unreadable. Each agent connects in **Settings → Ask Mend · ChatGPT**, opens the authorization page, enters the displayed device code, and returns to the drawer. No extension, API key entry, Mend backend proxy, or redirect callback is needed. The Worker makes the authenticated Codex request using that agent's connection; Mend still handles its own session, encrypted storage, and scoped tools. A live authorization and model response require a ChatGPT account and must be checked in the deployed environment.
 
 ## Quality checks
 
