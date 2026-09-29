@@ -6,6 +6,7 @@ import { CalendarDays, ChevronDown, ClipboardList, Headset, LayoutDashboard, Men
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AskMend } from "@/components/ai/ask-mend";
 
 export type Area = "today" | "follow-ups" | "rcc" | "cases" | "schedule" | "settings" | "admin";
 const navigation = [
@@ -109,7 +110,7 @@ export function MendShell({ children }: { children: React.ReactNode }) {
           <span className="text-[15px] font-semibold">{currentArea === "settings" ? "Settings" : currentArea === "admin" ? "Agent access" : navigation.find(item => item.id === currentArea)?.label}</span>
           <ChevronDown className="size-4 text-muted-foreground md:hidden" aria-hidden="true" />
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2"><AskMend /><ThemeToggle /></div>
       </header>
       <main id="main-content" className="mx-auto w-full max-w-[1500px] px-5 py-7 sm:px-8 lg:px-10">{children}</main>
     </div>
