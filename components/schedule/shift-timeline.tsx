@@ -25,18 +25,24 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
   const today = cairoNow(now);
   const todayIndex = new Date(`${today.date}T12:00:00Z`).getUTCDay();
   const sunday = Date.parse(`${today.date}T12:00:00Z`) - todayIndex * 86_400_000;
-  const rows: Row[] = week.map((weekPlan, index) => {
+  const plans = week.map((weekPlan, index) => {
     const date = iso(sunday + index * 86_400_000);
     const override = exceptions.find(item => item.date === date);
     const plan = override ? override.plan : weekPlan;
-    const s = toMinutes(plan.start);
-    const e = s + ((toMinutes(plan.end) - s + 1440) % 1440);
-    const pauses = [...plan.breaks, ...(plan.lunch ? [plan.lunch] : [])].map(pause => {
+    const s0 = toMinutes(plan.start);
+    return { index, date, plan, exception: Boolean(override), s0, e0: s0 + ((toMinutes(plan.end) - s0 + 1440) % 1440) };
+  });
+  // Early-morning days that fit inside the overnight tail sit after midnight on the same axis, so night shifts stay one bar.
+  const tail = Math.max(0, ...plans.filter(row => !row.plan.off).map(row => row.e0 - 1440));
+  const rows: Row[] = plans.map(({ s0, e0, ...row }) => {
+    const shiftDay = tail > 0 && !row.plan.off && s0 < 720 && e0 <= tail ? 1440 : 0;
+    const s = s0 + shiftDay, e = e0 + shiftDay;
+    const pauses = [...row.plan.breaks, ...(row.plan.lunch ? [row.plan.lunch] : [])].map(pause => {
       let a = toMinutes(pause.start);
-      if (a < s) a += 1440;
+      while (a < s) a += 1440;
       return { a, b: a + ((toMinutes(pause.end) - toMinutes(pause.start) + 1440) % 1440) };
     });
-    return { index, date, plan, exception: Boolean(override), s, e, pauses };
+    return { ...row, s, e, pauses };
   });
   const working = rows.filter(row => !row.plan.off);
   const axisStart = working.length ? Math.floor(Math.min(...working.map(row => row.s)) / 180) * 180 : 540;
@@ -61,7 +67,7 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
   return <div className="mt-9">
     <div className="grid grid-cols-[112px_minmax(0,1fr)_132px] gap-x-4 px-3 pb-2" aria-hidden="true">
       <span />
-      <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("type-id absolute text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
+      <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("type-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
       <span />
     </div>
     <div>

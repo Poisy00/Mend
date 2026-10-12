@@ -23,7 +23,7 @@ export function WorkRow({ title, subtitle, eyebrow, meta, metaLate, tone, status
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "?";
   const className = cn(rowClass, selected && "bg-accent hover:bg-accent before:scale-y-100");
   const children = <>
-    <TimeRing tone={tone} left={left} initials={initials} selected={selected} />
+    <TimeRing tone={tone} left={left} initials={initials} />
     <span className="min-w-0">
       {eyebrow && <span className="type-id block truncate text-text-secondary">{eyebrow}</span>}
       <strong className={cn("mt-0.5 -mb-1 inline-block max-w-full truncate pb-1 text-[15px] font-semibold leading-[1.3] tracking-[-.01em] text-text-primary", mended && "mend-stitch")}>{name}</strong>

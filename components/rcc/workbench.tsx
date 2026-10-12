@@ -18,7 +18,7 @@ export function RccWorkbench({ initialState }: { initialState: RccInitialState }
   const [active, setActive] = useState<Tool>("expedite");
   return <div>
     <VercelTabs tabs={tools} activeTab={active} onTabChange={id => setActive(id as Tool)} label="RCC workflows" />
-    <section role="tabpanel" id={`rcc-panel-${active}`} aria-labelledby={`rcc-tab-${active}`} tabIndex={0}>
+    <section role="tabpanel" id={`rcc-panel-${active}`} aria-labelledby={`rcc-tab-${active}`} tabIndex={0} className="pt-6">
       {active === "expedite" ? <ExpediteForm initialDraft={initialState.expedite} initialPreferences={initialState.preferences} /> : active === "technician-review" ? <TechnicianReview initialDraft={initialState.technicianReview} initialPreferences={initialState.preferences} /> : <QuickFollowUp initialDraft={initialState.quickFollowUp} initialPreferences={initialState.preferences} />}
     </section>
   </div>;
