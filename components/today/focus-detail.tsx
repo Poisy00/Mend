@@ -63,7 +63,7 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
     <section className="mt-6" aria-label="History">
       <h3 className="t-caption font-semibold text-text-secondary">History</h3>
       {history?.id === item.id && (history.events.length
-        ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[64px_1fr] gap-3 py-1.5"><span className="num text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
+        ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="num whitespace-nowrap text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
         : <p className="t-meta mt-2 text-text-secondary">No history yet.</p>)}
     </section>
   </aside>;

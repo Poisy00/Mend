@@ -188,10 +188,10 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
   let nowPlaced = filter !== "all" || !visible.some(item => cairoDay(Date.parse(item.dueAt)) === today);
   for (const item of visible) {
     const due = Date.parse(item.dueAt);
-    if (!nowPlaced && due >= now) { entries.push({ kind: "now" }); nowPlaced = true; }
     const day = cairoDay(due);
+    if (day === today && previousDay !== today && dividerShown) entries.push({ kind: "day", label: "Today" });
+    if (!nowPlaced && due >= now) { entries.push({ kind: "now" }); nowPlaced = true; }
     if (day !== today && day !== previousDay) { entries.push({ kind: "day", label: dayLabel(due, now) }); dividerShown = true; }
-    else if (day === today && previousDay !== today && dividerShown) entries.push({ kind: "day", label: "Today" });
     previousDay = day;
     entries.push({ kind: "item", item });
   }
