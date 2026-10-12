@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { callbackPresetWallTime, wallDateTime, wallTimeToUtc } from "@/lib/follow-ups/time";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PageHeader } from "@/components/ui/page-header";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MendSelect } from "@/components/ui/mend-select";
@@ -124,9 +126,7 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
 
   return <div className="mx-auto max-w-[800px]">
     <Link href="/follow-ups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Follow-ups</Link>
-    <p className="mt-8 text-sm font-medium text-primary">NEW FOLLOW-UP</p>
-    <h1 className="mt-2 text-4xl font-semibold tracking-[-.05em]">Keep your promise.</h1>
-    <p className="mt-3 text-muted-foreground">Capture what to call about and when. The queue will bring it back at the right time.</p>
+    <div className="mt-8"><PageHeader eyebrow="New follow-up" title="Keep your promise." description="Capture what to call about and when. The queue will bring it back at the right time." /></div>
     <form ref={formRef} onInput={() => scheduleDraft()} onSubmit={submit} className="mt-9 space-y-8">
       <section className="grid gap-5 border-t border-border pt-7 sm:grid-cols-2">
         <div className="space-y-2"><Label htmlFor="customerName">Customer name · optional</Label><Input id="customerName" name="customerName" defaultValue={initialDraft?.payload.fields.customerName ?? ""} /></div>
@@ -146,7 +146,7 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
           <div className="space-y-2"><Label htmlFor="appointmentEnd">Appointment ends</Label><MendDatePicker id="appointmentEnd" name="appointmentEnd" mode="datetime" value={dates.appointmentEnd} onValueChange={value => { setWindowPreset("custom");setDates(previous => ({ ...previous, appointmentEnd: value })); window.requestAnimationFrame(() => scheduleDraft()); }} /></div>
         </div>}
         {reason === "Technician go-back request" && <div className="space-y-2 sm:col-span-2"><Label htmlFor="goBackIssue">Why does the technician need to go back?</Label><MendSelect id="goBackIssue" name="goBackIssue" value={goBackIssue} onValueChange={value=>{setGoBackIssue(value);setNotes(followUpRecipe(reason,appointmentEndLabel(dates.appointmentEnd),value).context);window.requestAnimationFrame(()=>scheduleDraft());}} placeholder="Choose a reason" options={GO_BACK_ISSUES.map(value=>({value,label:value}))} /></div>}
-        {reason === "Technician missed appointment window" && <label className="flex items-start gap-3 sm:col-span-2 text-sm"><input type="checkbox" name="etaRaised" value="true" checked={etaRaised} onChange={event=>{setEtaRaised(event.target.checked);window.requestAnimationFrame(()=>scheduleDraft());}} className="mt-1" /><span>Tech ETA escalation has been raised before this follow-up.</span></label>}</section>
+        {reason === "Technician missed appointment window" && <label className="flex items-start gap-3 sm:col-span-2 text-sm"><Checkbox name="etaRaised" value="true" checked={etaRaised} onCheckedChange={v=>{setEtaRaised(v===true);window.requestAnimationFrame(()=>scheduleDraft());}} className="mt-0.5" /><span>Tech ETA escalation has been raised before this follow-up.</span></label>}</section>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><Link href="/follow-ups">Cancel</Link></Button><Button type="submit" className="min-w-[160px]" disabled={pending}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
     </form>

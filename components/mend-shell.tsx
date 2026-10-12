@@ -29,7 +29,7 @@ function areaFromPathname(pathname: string): Area {
 
 function NavLinks({ currentArea, onNavigate }: { currentArea: Area; onNavigate?: () => void }) {
   return <nav aria-label="Workspace" className="mt-7 space-y-1">
-    {navigation.map(({ id, label, href, icon: Icon }) => <MendLink key={id} href={href} prefetch onClick={onNavigate} aria-current={currentArea === id ? "page" : undefined} className={"flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors hover:bg-sidebar-accent focus-visible:outline-ring " + (currentArea === id ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}>
+    {navigation.map(({ id, label, href, icon: Icon }) => <MendLink key={id} href={href} prefetch onClick={onNavigate} aria-current={currentArea === id ? "page" : undefined} className={"relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-[15px] font-medium transition-colors focus-visible:outline-ring " + (currentArea === id ? "bg-accent text-accent-foreground font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full before:bg-primary" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary")}>
       <Icon aria-hidden="true" className="size-[18px]" /><span>{label}</span>
     </MendLink>)}
   </nav>;
@@ -98,16 +98,15 @@ export function MendShell({ children }: { children: React.ReactNode }) {
       </MendLink>
       <NavLinks currentArea={currentArea} />
       <div className="mt-auto border-t border-sidebar-border pt-4">
-        <MendLink href="/settings" aria-current={currentArea === "settings" ? "page" : undefined} className={"flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] hover:bg-sidebar-accent " + (currentArea === "settings" ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground" : "text-muted-foreground")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
+        <MendLink href="/settings" aria-current={currentArea === "settings" ? "page" : undefined} className={"relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-[15px] transition-colors " + (currentArea === "settings" ? "bg-accent text-accent-foreground font-medium before:absolute before:left-0 before:top-2 before:bottom-2 before:w-0.5 before:rounded-full before:bg-primary" : "text-text-secondary hover:bg-surface-hover hover:text-text-primary")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
         <p className="px-3 pt-3 text-xs text-muted-foreground">A clearer desk for every case.</p>
       </div>
     </aside>
     <div className="md:pl-[238px]">
-      <header className="sticky top-0 z-10 flex h-[68px] items-center justify-between border-b border-border bg-background/95 px-5 backdrop-blur sm:px-8">
+      <header className="sticky top-0 z-10 flex h-[68px] items-center justify-between border-b border-border bg-canvas/85 px-5 backdrop-blur-md sm:px-8">
         <div className="flex items-center gap-2">
           <Button className="md:hidden" variant="ghost" size="icon" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></Button>
-          <div className="hidden text-sm text-muted-foreground sm:block">Workspace <span className="mx-2">/</span></div>
-          <span className="text-[15px] font-semibold">{currentArea === "settings" ? "Settings" : currentArea === "admin" ? "Agent access" : navigation.find(item => item.id === currentArea)?.label}</span>
+          <span className="text-[15px] font-semibold md:hidden">{currentArea === "settings" ? "Settings" : currentArea === "admin" ? "Agent access" : navigation.find(item => item.id === currentArea)?.label}</span>
           <ChevronDown className="size-4 text-muted-foreground md:hidden" aria-hidden="true" />
         </div>
         <div className="flex items-center gap-2"><AskMend /><ThemeToggle /></div>
@@ -125,7 +124,7 @@ export function MendShell({ children }: { children: React.ReactNode }) {
           <SheetDescription className="sr-only">Workspace navigation</SheetDescription>
         </SheetHeader>
         <NavLinks currentArea={currentArea} onNavigate={() => setOpen(false)} />
-        <MendLink href="/settings" onClick={() => setOpen(false)} aria-current={currentArea === "settings" ? "page" : undefined} className={"mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] " + (currentArea === "settings" ? "font-medium text-sidebar-accent-foreground" : "text-sidebar-foreground/75")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
+        <MendLink href="/settings" onClick={() => setOpen(false)} aria-current={currentArea === "settings" ? "page" : undefined} className={"relative mt-4 flex min-h-11 items-center gap-3 border-t border-sidebar-border px-3 pt-4 text-[15px] " + (currentArea === "settings" ? "font-medium text-accent-foreground" : "text-text-secondary hover:text-text-primary")}><Settings2 className="size-[18px]" aria-hidden="true" />Settings</MendLink>
       </SheetContent>
     </Sheet>
   </div>;

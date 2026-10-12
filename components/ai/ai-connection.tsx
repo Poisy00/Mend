@@ -43,7 +43,7 @@ export function AIConnection() {
     finally {setBusy(false);}
   }
   return <section className="mt-10 border-t border-border pt-7" aria-labelledby="chatgpt-connection">
-    <h2 id="chatgpt-connection" className="text-xl font-semibold">Ask Mend · ChatGPT</h2>
+    <h2 id="chatgpt-connection" className="type-subheading">Ask Mend · ChatGPT</h2>
     <p className="mt-2 text-sm text-muted-foreground">Connect your ChatGPT account to use Ask Mend in this workspace. Your conversation and connection are private to your Mend account.</p>
     {connection.status==="connected"?<div className="mt-4 space-y-3"><p className="text-sm">Connected{connection.accountLabel?` as ${connection.accountLabel}`:""}.</p><Button variant="outline" disabled={busy} onClick={()=>void action("DELETE","disconnect")}>Disconnect ChatGPT</Button></div>:
       pending?<div className="mt-4 space-y-3 rounded-xl border bg-card p-5"><p className="text-sm">Open the authorization page, sign in to ChatGPT, and enter this code:</p>
