@@ -3,15 +3,15 @@
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
 :root {
-  --canvas:#f8f7f5; --surface:#fffefd; --surface-hover:#f2efed; --popover:#fffefd; --sidebar:#f3f1ee; --document:#fffefd;
-  --text-primary:#1b1b18; --text-secondary:#686660; --text-muted:#6d6964; --document-foreground:#282525;
-  --primary:#5b456f; --primary-hover:#745a89; --primary-foreground:#fff;
-  --accent:#eeeaf1; --accent-foreground:#49365b; --secondary:#efedf0; --secondary-foreground:#322b38; --muted:#f1f0ed;
-  --border:#dedbd8; --control-edge:#8f8a84; --ring:#7c6590; --destructive:#aa343b;
-  --status-overdue:#a3401c; --status-overdue-tint:#fbe9e1;
-  --status-due:#865600; --status-due-tint:#f8eed7;
+  --canvas:#F1F2F4; --surface:#FFFFFF; --surface-hover:#F4F5F7; --popover:#FFFFFF; --sidebar:#F1F2F4; --document:#fffefd;
+  --text-primary:#16181D; --text-secondary:#5A606C; --text-muted:#6B717D; --document-foreground:#282525;
+  --primary:#4E3D8F; --primary-hover:#5E4CA3; --primary-foreground:#FFFFFF;
+  --accent:#EEEBF8; --accent-foreground:#3E2F78; --secondary:#EFF0F3; --secondary-foreground:#2A2D35; --muted:#EEF0F2;
+  --border:#E2E4E9; --control-edge:#8B909B; --ring:#4E3D8F; --destructive:#AA343B;
+  --status-overdue:#B4381F; --status-overdue-tint:#FBEAE4;
+  --status-due:#8A5A00; --status-due-tint:#F7EED8;
   --status-scheduled:var(--accent-foreground); --status-scheduled-tint:var(--accent);
-  --status-done:#1f6a6a; --status-done-tint:#e2f0ee;
+  --status-done:#17714F; --status-done-tint:#E3F2EA;
   --status-closed:var(--text-secondary); --status-closed-tint:var(--muted);
   --shadow-press:inset 0 1px 0 rgba(255,255,255,.14), 0 1px 2px rgba(27,27,24,.18);
   --shadow-card:0 1px 2px rgba(27,27,24,.025), 0 12px 36px rgba(27,27,24,.04);
@@ -33,14 +33,14 @@
   --sidebar-accent:var(--accent); --sidebar-accent-foreground:var(--accent-foreground); --sidebar-border:var(--border); --sidebar-ring:var(--ring);
 }
 .dark {
-  --canvas:#17181b; --surface:#1c1d21; --surface-hover:#2a292e; --popover:#25262c; --sidebar:#141518; --document:#fffefd;
-  --text-primary:#edebe6; --text-secondary:#aaa7a3; --text-muted:#aaa7a3; --document-foreground:#282525;
-  --primary:#cbaee0; --primary-hover:#d9c3ea; --primary-foreground:#241b2a;
-  --accent:#3a3242; --accent-foreground:#e8d7f4; --secondary:#302d35; --secondary-foreground:#edebe6; --muted:#25262b;
-  --border:#3a3a3e; --control-edge:#76747a; --ring:#cbaee0; --destructive:#ed858b;
-  --status-overdue:#f2a383; --status-overdue-tint:#3b241d;
-  --status-due:#e6bd6a; --status-due-tint:#342a18;
-  --status-done:#86cfc8; --status-done-tint:#1b2f2e;
+  --canvas:#0E1014; --surface:#161920; --surface-hover:#1E222A; --popover:#1E222A; --sidebar:#0E1014; --document:#fffefd;
+  --text-primary:#E8EAEE; --text-secondary:#9BA1AD; --text-muted:#8A909C; --document-foreground:#282525;
+  --primary:#B4A6F3; --primary-hover:#C6BBF6; --primary-foreground:#191433;
+  --accent:#241F3C; --accent-foreground:#DCD4FB; --secondary:#22262E; --secondary-foreground:#E8EAEE; --muted:#1E222A;
+  --border:#262A33; --control-edge:#6E7480; --ring:#B4A6F3; --destructive:#ED858B;
+  --status-overdue:#F29A85; --status-overdue-tint:#3A211B;
+  --status-due:#E8C06E; --status-due-tint:#33291A;
+  --status-done:#7FD3AE; --status-done-tint:#18302A;
   --sheet-shadow:0 0 0 1px rgb(255 255 255 / .06), 0 8px 24px -12px rgb(0 0 0 / .5);
   --chip-shadow:0 0 0 1px rgb(255 255 255 / .08), 0 1px 2px rgb(0 0 0 / .4);
 }
