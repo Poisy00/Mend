@@ -36,7 +36,7 @@ export default async function TodayPage() {
       </div>
     </div>
     <section className="min-w-0 pt-8 pb-8" aria-label="Follow-ups">
-      <TodayQueue key={open.map(item => `${item.id}:${item.revision}`).join()} items={open} now={nowMs} total={followUps.items.length} />
+      <TodayQueue items={open} now={nowMs} />
       {followUps.nextCursor && <div className="pt-4"><Button asChild variant="ghost" size="sm"><Link href="/follow-ups">View all in Follow-ups</Link></Button></div>}
     </section>
   </>;

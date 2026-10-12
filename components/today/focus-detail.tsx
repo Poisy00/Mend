@@ -10,6 +10,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { StatusPill } from "@/components/ui/status";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { displayName, formatAccountIfComplete, formatPhone } from "@/lib/display/format";
+import { relativeTime } from "@/lib/display/relative";
 import { dueCaption, followUpDisplay } from "@/lib/follow-ups/display";
 import type { FollowUp } from "@/lib/follow-ups/types";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
   item: FollowUp; now: number; onResolve: () => void; onSnooze: (minutes: number) => void;
   snoozeOpen: boolean; onSnoozeOpenChange: (open: boolean) => void; mended: boolean;
 }) {
-  const [history, setHistory] = useState<HistoryEvent[]>([]);
+  const [history, setHistory] = useState<{ id: string; events: HistoryEvent[] } | null>(null);
   const display = followUpDisplay(item, now);
   const phone = item.phoneNumber.replace(/\D/g, "").length === 10 ? formatPhone(item.phoneNumber) : item.phoneNumber;
   const account = formatAccountIfComplete(item.accountNumber);
@@ -31,7 +32,7 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
   useEffect(() => {
     let active = true;
     fetch(`/api/follow-ups/${item.id}`).then(response => response.json() as Promise<{ history?: HistoryEvent[] }>).then(data => {
-      if (active && Array.isArray(data.history)) setHistory(data.history);
+      if (active && Array.isArray(data.history)) setHistory({ id: item.id, events: data.history });
     }).catch(() => {});
     return () => { active = false; };
   }, [item.id, item.revision]);
@@ -61,9 +62,9 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
     </div>
     <section className="mt-6" aria-label="History">
       <h3 className="t-caption font-semibold text-text-secondary">History</h3>
-      {history.length
-        ? <ul className="mt-2">{history.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[64px_1fr] gap-3 py-1.5"><span className="num text-text-muted">{new Date(event.createdAt).toLocaleTimeString("en-US", { timeStyle: "short" })}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
-        : <p className="t-meta mt-2 text-text-secondary">No history yet.</p>}
+      {history?.id === item.id && (history.events.length
+        ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[64px_1fr] gap-3 py-1.5"><span className="num text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
+        : <p className="t-meta mt-2 text-text-secondary">No history yet.</p>)}
     </section>
   </aside>;
 }
