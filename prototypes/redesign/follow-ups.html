@@ -425,14 +425,14 @@ function renderSide() {
   const act = S.items.filter(isActive), n = act.filter(i => ["late", "now"].includes(bucket(i))).length;
   $("#side").innerHTML = `<div class="logo">Mend <i></i></div>${NAV.map(([ic, l], k) => `<button class="nav press" ${k === 1 ? 'aria-current="page"' : ""}>${I(ic)}<span>${l}</span>${k === 1 && n ? `<span class="count num">${n}</span>` : ""}</button>`).join("")}
     <div style="height:16px"></div><button class="nav press">${I("msg")}<span>Ask Mend</span></button>
-    <div class="agent"><span class="avatar">NS</span><span><b style="font-weight:600">Nour Saleh</b><small class="num">Until 12:00 AM</small></span></div>`;
+    <div class="agent"><span class="avatar">NS</span><span><b style="font-weight:600">Nour Saleh</b><small>Until 12:00 AM</small></span></div>`;
 }
 function renderHdr() {
   const act = S.items.filter(isActive), late = act.filter(i => bucket(i) === "late").length, now = act.filter(i => bucket(i) === "now").length, soon = act.filter(i => bucket(i) === "soon").length;
   const parts = [now && `${now} due now`, soon && `${soon} within the hour`].filter(Boolean);
   let sum = late ? `<em>${words[late] || late} callback${late === 1 ? " is" : "s are"} late.</em>` : act.length ? "You're on time." : "Nothing open.";
   if (parts.length) sum += ` ${parts.join(", ")}.`;
-  $("#hdr").innerHTML = `<div><p class="date">Callbacks</p><h1>Follow-ups</h1><p class="sub num">${sum}</p></div>
+  $("#hdr").innerHTML = `<div><p class="date">Callbacks</p><h1>Follow-ups</h1><p class="sub">${sum}</p></div>
     <div class="actions-h"><button class="switch press" role="switch" aria-checked="${S.reminders}" data-act="reminders"><i></i>Browser reminders</button><button class="btn btn-primary press" data-act="new">${I("plus")}New follow-up</button></div>`;
 }
 function renderTools() {
@@ -450,7 +450,7 @@ function rowHTML(i) {
   return `<div class="collapse ${S.busy === i.id + ":gone" ? "gone" : ""}"><div><div class="row is-${b} ${vm ? "is-vm" : ""}" role="button" tabindex="0" data-act="sel" data-id="${i.id}" aria-current="${id === i.id}">
     <div class="t num">${clock(done ? i.doneAt : i.due)}</div><div class="node"><b></b></div>
     <div style="min-width:0"><div class="name"><strong class="${stitching ? "stitch" : ""}">${esc(i.name)}</strong>${i.priority === "urgent" && !done ? '<span class="tag-u">Urgent</span>' : ""}${i.caseId ? `<span class="id num">${i.caseId}</span>` : ""}</div><p class="reason">${esc(i.reason)}</p></div>
-    <div><span class="due num">${rel(i)}</span>${done ? "" : `<span class="acts"><button class="icon-btn press" data-act="resolve" data-id="${i.id}" aria-label="Mark ${esc(i.name)} resolved">${I("check")}</button><button class="icon-btn press" data-act="snooze" data-id="${i.id}" aria-label="Snooze ${esc(i.name)}">${I("alarm")}</button></span>`}</div>
+    <div><span class="due">${rel(i)}</span>${done ? "" : `<span class="acts"><button class="icon-btn press" data-act="resolve" data-id="${i.id}" aria-label="Mark ${esc(i.name)} resolved">${I("check")}</button><button class="icon-btn press" data-act="snooze" data-id="${i.id}" aria-label="Snooze ${esc(i.name)}">${I("alarm")}</button></span>`}</div>
   </div></div></div>`;
 }
 const divider = label => `<div class="divider"><div class="t"></div><div class="node"><b></b></div><span>${label}</span></div>`;
@@ -472,7 +472,7 @@ function renderList() {
 function chipHTML(i) {
   const done = !isActive(i), vm = i.status === "voicemail_required";
   const cls = done ? "done" : vm ? "now" : bucket(i), txt = done ? `${i.outcome} at ${clock(i.doneAt)}` : vm ? "Voicemail needed" : chipText(i);
-  return `<span class="chip ${cls} num">${txt}</span>${i.priority === "urgent" && !done ? '<span class="tag-u">Urgent</span>' : ""}`;
+  return `<span class="chip ${cls}">${txt}</span>${i.priority === "urgent" && !done ? '<span class="tag-u">Urgent</span>' : ""}`;
 }
 function headHTML(i) {
   return `<button class="back btn btn-quiet press" data-act="back">${I("chevL")}Back</button>
@@ -483,13 +483,13 @@ const copyBtn = (v, l) => `<button class="copy press" data-act="copy" data-v="${
 function factsHTML(i) {
   return `<dl class="facts"><div><dt>Account</dt><dd><span class="num">${i.account}</span>${copyBtn(i.account, "account number")}</dd></div>
     <div><dt>Case</dt><dd>${i.caseId ? `<span class="num">${i.caseId}</span>${copyBtn(i.caseId, "case number")}` : "Not saved"}</dd></div>
-    <div class="wide"><dt>Due</dt><dd class="num">${dueFull(i)}</dd></div>
+    <div class="wide"><dt>Due</dt><dd>${dueFull(i)}</dd></div>
     ${i.appt ? `<div class="wide"><dt>Appointment</dt><dd>${esc(i.appt)}</dd></div>` : ""}
     ${i.promise ? `<div class="wide"><dt>Promise</dt><dd style="font-weight:400">${esc(i.promise)}</dd></div>` : ""}
     ${i.cond ? `<div class="wide"><dt>Complete when</dt><dd style="font-weight:400">${esc(i.cond)}</dd></div>` : ""}</dl>`;
 }
 const ctxHTML = i => i.notes ? `<div class="sec"><h3>Context</h3><p class="ctx">${esc(i.notes)}</p></div>` : "";
-const histHTML = i => `<div class="sec"><h3>History</h3><ul class="spine">${i.hist.map(([t, x]) => `<li><span class="num">${esc(t)}</span><i></i><span>${esc(x)}</span></li>`).join("")}</ul></div>`;
+const histHTML = i => `<div class="sec"><h3>History</h3><ul class="spine">${i.hist.map(([t, x]) => `<li><span>${esc(t)}</span><i></i><span>${esc(x)}</span></li>`).join("")}</ul></div>`;
 
 const OUT = [["busy", "Busy", "Back in 10 min"], ["noanswer", "No answer", "Asks about voicemail next"], ["followup", "Follow up", "+30 min"], ["escalation", "Escalation", "+30 min"], ["wrong", "Wrong number", "Closes it"], ["pick", "Pick a time…", "Set your own"]];
 const pickHTML = i => `<div class="pick"><label class="fld"><span class="l"><span>New time, Cairo</span></span><input class="in" type="datetime-local" id="pickAt" value="${toLocalInput(Math.max(NOW + 60, i.due))}"></label><div class="r"><button class="btn btn-primary press" data-act="reschedule" data-id="${i.id}">Reschedule</button></div></div>`;
@@ -602,7 +602,7 @@ function applyField(it, k, val) {
 const menu = $("#menu");
 function openMenu(anchor, id) {
   const r = anchor.getBoundingClientRect();
-  menu.innerHTML = `<p>Call back in</p>${[30, 60, 120].map(m => `<button role="menuitem" data-act="snz" data-id="${id}" data-m="${m}">${m < 60 ? "30 minutes" : m === 60 ? "1 hour" : "2 hours"}<span class="num">${clock(NOW + m)}</span></button>`).join("")}`;
+  menu.innerHTML = `<p>Call back in</p>${[30, 60, 120].map(m => `<button role="menuitem" data-act="snz" data-id="${id}" data-m="${m}">${m < 60 ? "30 minutes" : m === 60 ? "1 hour" : "2 hours"}<span>${clock(NOW + m)}</span></button>`).join("")}`;
   menu.style.top = `${Math.min(r.bottom + 6, innerHeight - 190)}px`; menu.style.left = `${Math.max(8, Math.min(r.right - 200, innerWidth - 208))}px`; menu.style.minWidth = "200px";
   delete menu.dataset.hidden; menu.querySelector("button")?.focus({ preventScroll: true });
 }

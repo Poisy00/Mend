@@ -473,12 +473,12 @@ function buildEmail(f, route, a) {
 const paperHTML = (m, extra = "") => `<div class="paper" ${extra}><div class="hd"><span>To</span><span>${m.to ? esc(m.to) : '<span class="ph">Set recipient</span>'}</span><span>Subject</span><span style="font-weight:500">${esc(m.subject)}</span></div><hr>${m.html}</div>`;
 
 /* ── shared chrome ── */
-function renderSide() { $("#side").innerHTML = `<div class="logo">Mend <i></i></div>${NAV.map(([ic, l], k) => `<button class="nav press" ${k === 2 ? 'aria-current="page"' : ""}>${I(ic)}<span>${l}</span></button>`).join("")}<div style="height:16px"></div><button class="nav press">${I("msg")}<span>Ask Mend</span></button><div class="agent"><span class="avatar">NS</span><span><b style="font-weight:600">Nour Saleh</b><small class="num">Until 12:00 AM</small></span></div>`; }
+function renderSide() { $("#side").innerHTML = `<div class="logo">Mend <i></i></div>${NAV.map(([ic, l], k) => `<button class="nav press" ${k === 2 ? 'aria-current="page"' : ""}>${I(ic)}<span>${l}</span></button>`).join("")}<div style="height:16px"></div><button class="nav press">${I("msg")}<span>Ask Mend</span></button><div class="agent"><span class="avatar">NS</span><span><b style="font-weight:600">Nour Saleh</b><small>Until 12:00 AM</small></span></div>`; }
 const TITLES = { expedite: ["Appointment expedite", "Routing follows New York time. Review the email before opening Outlook."], tech: ["Technician review", "Describe the situation, reconcile what the customer says with the records, then review the email."], quick: ["Quick follow-up", "A short note to the team. Review the email before opening Outlook."] };
 function renderHdr() { const [t, s] = TITLES[R.tool]; $("#hdr").innerHTML = `<div><p class="date">RCC Dispatch</p><h1>${t}</h1><p class="sub">${s}</p></div><div class="actions-h"><button class="btn btn-ghost press" data-act="prefs">${I("settings")}Recipients and signature</button></div>`; }
 function renderTools() { $("#tools").innerHTML = TOOLS.map(([k, l]) => `<button class="f press" data-act="tool" data-t="${k}" aria-pressed="${R.tool === k}">${l}</button>`).join(""); }
 function renderPrev() {
-  const p = R.prev; $("#prev").innerHTML = p ? `<div class="prev"><div><small>Previous prepared request</small><b class="num">${esc(p.form.account)}, ${esc(p.form.reason)}</b></div><div class="r"><button class="btn btn-ghost press" data-act="restore">Restore</button><button class="btn btn-ghost press" data-act="outlook-prev">Open Outlook</button><button class="btn btn-ghost press" data-act="savecase">Save as Case</button></div></div>` : "";
+  const p = R.prev; $("#prev").innerHTML = p ? `<div class="prev"><div><small>Previous prepared request</small><b>${esc(p.form.account)}, ${esc(p.form.reason)}</b></div><div class="r"><button class="btn btn-ghost press" data-act="restore">Restore</button><button class="btn btn-ghost press" data-act="outlook-prev">Open Outlook</button><button class="btn btn-ghost press" data-act="savecase">Save as Case</button></div></div>` : "";
 }
 
 /* ── expedite: form pieces ── */
@@ -561,7 +561,7 @@ function renderLive() {
   const warns = route.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join("");
   const clockLine = `${nyClock()}, ${countdown()}`;
   $("#paper").innerHTML = paperHTML(mail);
-  if ($("#rcard")) $("#rcard").innerHTML = `<div class="rn">${route.name}<span class="tagm">${route.isAuto ? "Automatic" : "Override"}</span></div><div class="rl num">${clockLine}</div><div class="rl">${esc(route.to || "No recipient set")}</div>${warns ? `<div class="warns">${warns}</div>` : ""}`;
+  if ($("#rcard")) $("#rcard").innerHTML = `<div class="rn">${route.name}<span class="tagm">${route.isAuto ? "Automatic" : "Override"}</span></div><div class="rl">${clockLine}</div><div class="rl">${esc(route.to || "No recipient set")}</div>${warns ? `<div class="warns">${warns}</div>` : ""}`;
   if ($("#check")) $("#check").innerHTML = a.all.map(c => `<li class="${c.ok ? "ok" : ""}">${c.ok ? tick : "<i></i>"}<span>${c.label}${c.ok ? "" : ""}</span></li>`).join("");
   $("#sugg").innerHTML = [a.dateNote && `<span style="color:var(--late)">${esc(a.dateNote)}</span>`, ...a.suggestions.map(esc)].filter(Boolean).join("<br>");
   if ($("#sbig")) {
@@ -570,7 +570,7 @@ function renderLive() {
   }
   if ($("#rail")) {
     const done = a.checks.filter(c => c.ok).length;
-    $("#rail").innerHTML = `<h3 class="num">${done} of 7 ready</h3>${a.checks.map(c => `<button class="${c.ok ? "ok" : ""}" data-act="jump" data-j="${c.k}">${c.ok ? tick : "<i></i>"}${c.label}</button>`).join("")}`;
+    $("#rail").innerHTML = `<h3>${done} of 7 ready</h3>${a.checks.map(c => `<button class="${c.ok ? "ok" : ""}" data-act="jump" data-j="${c.k}">${c.ok ? tick : "<i></i>"}${c.label}</button>`).join("")}`;
     $("#proglab").textContent = `${done} of 7 ready`;
     $("#progsegs").innerHTML = a.checks.map(c => `<button class="${c.ok ? "ok" : ""}" data-act="jump" data-j="${c.k}" aria-label="${c.label}, ${c.ok ? "ready" : "needs attention"}"></button>`).join("");
   }
