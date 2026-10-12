@@ -64,7 +64,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
     <ShiftTimeline week={week} exceptions={exceptions} selected={selectedDay} onSelect={setSelectedDay} now={now} />
     <section className="mt-8 rounded-xl border border-border bg-surface p-6" aria-label={days[index] + " schedule"}>
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        <h2 className="type-subheading min-w-[7rem]">{days[index]}</h2>
+        <h2 className="t-heading min-w-[7rem]">{days[index]}</h2>
         <label className="flex items-center gap-2 text-sm font-medium"><Checkbox checked={!day.off} onCheckedChange={v => patchDay(index, { off: v !== true, breaks: [], lunch: null })} />Working</label>
         {!day.off && <>
           <label className="flex items-center gap-2 text-sm text-text-secondary">From <Input aria-label={days[index] + " start"} type="time" className={timeInput} value={day.start} onChange={event => patchDay(index, { start: event.target.value })} /></label>
@@ -83,7 +83,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
     </section>
     <section className="mt-12 border-t border-border pt-8">
       <Eyebrow>Exceptions</Eyebrow>
-      <h2 className="type-subheading mt-1">One-day exception</h2>
+      <h2 className="t-heading mt-1">One-day exception</h2>
       <p className="mt-2 text-sm text-text-secondary">Override the repeating pattern for one Cairo calendar date.</p>
       <div className="mt-5 flex flex-wrap items-end gap-4">
         <label className="space-y-2"><span className="block text-sm font-medium">Cairo date</span><MendDatePicker mode="date" value={exceptionDate} onValueChange={date => { setExceptionDate(date); const old = exceptions.find(item => item.date === date); setExceptionPlan(old?.plan ?? blankDay()); }} aria-label="Cairo date" /></label>
@@ -91,7 +91,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
         {!exceptionPlan.off && <><label className="space-y-2"><span className="block text-sm font-medium">Start</span><Input type="time" className={timeInput} value={exceptionPlan.start} onChange={event => setExceptionPlan(current => ({ ...current, start: event.target.value }))} /></label><label className="space-y-2"><span className="block text-sm font-medium">End</span><Input type="time" className={timeInput} value={exceptionPlan.end} onChange={event => setExceptionPlan(current => ({ ...current, end: event.target.value }))} /></label></>}
         <Button variant="secondary" onClick={saveException}>Save exception</Button>
       </div>
-      {exceptions.length > 0 && <div className="mt-6 divide-y divide-border border-y border-border">{exceptions.map(item => <div key={item.date} className="flex justify-between py-3"><span className="type-id">{item.date}</span><span className="font-mono text-sm text-text-secondary">{item.plan.off ? "Day off" : item.plan.start + "–" + item.plan.end}</span></div>)}</div>}
+      {exceptions.length > 0 && <div className="mt-6 divide-y divide-border border-y border-border">{exceptions.map(item => <div key={item.date} className="flex justify-between py-3"><span className="t-id">{item.date}</span><span className="font-mono text-sm text-text-secondary">{item.plan.off ? "Day off" : item.plan.start + "–" + item.plan.end}</span></div>)}</div>}
     </section>
   </div>;
 }

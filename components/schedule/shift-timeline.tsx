@@ -67,7 +67,7 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
   return <div className="mt-9">
     <div className="grid grid-cols-[112px_minmax(0,1fr)_132px] gap-x-4 px-3 pb-2" aria-hidden="true">
       <span />
-      <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("type-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
+      <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("t-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
       <span />
     </div>
     <div>
