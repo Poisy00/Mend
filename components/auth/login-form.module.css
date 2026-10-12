@@ -2,12 +2,12 @@
   --login-canvas: #f8f7f5;
   --login-surface: #fff;
   --login-ink: #1b1b18;
-  --login-muted: #696762;
-  --login-line: #e7e4dd;
+  --login-muted: #686660;
+  --login-line: #dedbd8;
   --login-iris: #5b456f;
   --login-iris-hover: #745a89;
-  --login-iris-soft: #f2edf5;
-  --login-danger: #b13a31;
+  --login-iris-soft: #eeeaf1;
+  --login-danger: #aa343b;
   --login-enter: cubic-bezier(.23, 1, .32, 1);
   min-height: 100dvh;
   display: flex;

@@ -1,37 +1,39 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import { MendLink } from "@/components/mend-link";
+import { StatusPill, TimeRing } from "@/components/ui/status";
+import { displayName } from "@/lib/display/format";
+import type { Tone } from "@/lib/follow-ups/display";
 import { cn } from "@/lib/utils";
 
 type WorkRowProps = {
-  title: string;
-  subtitle: string;
-  eyebrow?: string;
-  meta: string;
-  status: string;
-  tone?: "default" | "urgent" | "complete";
-  selected?: boolean;
-  onClick: () => void;
+  title: string; subtitle: string; eyebrow?: string; meta: string; metaLate?: boolean;
+  tone: Tone; statusLabel: string; statusIcon?: "open" | "scheduled" | "handoff" | "closed"; left: number;
+  selected?: boolean; mended?: boolean; onClick?: () => void; href?: string;
 };
 
 export function WorkListHeader({ subject = "Customer", detail = "Status / next" }: { subject?: string; detail?: string }) {
-  return <div aria-hidden="true" className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] gap-x-3 border-b border-border bg-muted/25 px-2 py-2.5 text-[11px] font-medium text-muted-foreground sm:grid-cols-[2.75rem_minmax(0,1fr)_minmax(6.5rem,auto)_1rem] sm:gap-x-4 sm:px-3"><span /><span>{subject}</span><span className="text-right">{detail}</span><span className="hidden sm:block" /></div>;
+  return <div aria-hidden="true" className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] gap-x-3 border-b border-border bg-muted/40 py-2.5 pl-3.5 pr-4 text-xs font-medium text-text-secondary"><span /><span>{subject}</span><span className="text-right">{detail}</span></div>;
 }
 
-export function WorkRow({ title, subtitle, eyebrow, meta, status, tone = "default", selected, onClick }: WorkRowProps) {
-  const initials = title.trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "?";
-  return <button type="button" onClick={onClick} aria-current={selected ? "true" : undefined} className={cn("group relative grid w-full grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border/70 px-2 py-4 text-left outline-none transition-[background-color,box-shadow] duration-150 hover:bg-accent/35 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-primary/30 sm:grid-cols-[2.75rem_minmax(0,1fr)_minmax(6.5rem,auto)_1rem] sm:gap-x-4 sm:px-3", selected && "bg-accent/50 shadow-[inset_3px_0_0_var(--primary)]")}>
-    <span className={cn("relative grid size-10 place-items-center rounded-full border border-border bg-background text-xs font-semibold tracking-tight text-muted-foreground transition-colors group-hover:border-primary/20 group-hover:text-primary", selected && "border-primary/20 bg-primary/10 text-primary")}>{initials}<span className={cn("absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-background", tone === "urgent" ? "bg-destructive" : tone === "complete" ? "bg-muted-foreground/50" : "bg-primary")} /></span>
+const rowClass = "group relative grid w-full grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border py-4 pl-3.5 pr-4 text-left outline-none transition-colors duration-150 hover:bg-surface-hover focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring before:absolute before:left-0 before:top-2.5 before:bottom-2.5 before:w-0.5 before:rounded-full before:bg-primary before:origin-center before:scale-y-0 before:transition-transform before:duration-[240ms] before:ease-mend";
+
+export function WorkRow({ title, subtitle, eyebrow, meta, metaLate, tone, statusLabel, statusIcon, left, selected, mended, onClick, href }: WorkRowProps) {
+  const name = displayName(title);
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]?.toUpperCase() || "").join("") || "?";
+  const className = cn(rowClass, selected && "bg-accent hover:bg-accent before:scale-y-100");
+  const children = <>
+    <TimeRing tone={tone} left={left} initials={initials} selected={selected} />
     <span className="min-w-0">
-      {eyebrow && <span className="mb-0.5 block truncate text-[10px] font-semibold uppercase tracking-[.11em] text-muted-foreground">{eyebrow}</span>}
-      <strong className="block truncate text-[14px] font-semibold tracking-[-.015em] text-foreground">{title}</strong>
-      <span className="mt-0.5 block truncate text-[12px] text-muted-foreground">{subtitle}</span>
+      {eyebrow && <span className="type-id block truncate text-text-secondary">{eyebrow}</span>}
+      <strong className={cn("mt-0.5 inline-block max-w-full truncate text-[15px] font-semibold leading-[1.3] tracking-[-.01em] text-text-primary", mended && "mend-stitch")}>{name}</strong>
+      <span className="mt-0.5 block truncate text-[13px] leading-[1.4] text-text-secondary">{subtitle}</span>
     </span>
-    <span className="min-w-0 text-right">
-      <span className={cn("inline-flex max-w-full items-center gap-1.5 truncate rounded-full px-2 py-1 text-[11px] font-medium", tone === "urgent" ? "bg-destructive/10 text-destructive" : tone === "complete" ? "bg-muted text-muted-foreground" : "bg-primary/8 text-primary")}><span className={cn("size-1.5 shrink-0 rounded-full bg-current", tone === "urgent" && "animate-pulse")} />{status}</span>
-      <span className="mt-1.5 hidden truncate text-[11px] text-muted-foreground sm:block">{meta}</span>
+    <span className="grid justify-items-end gap-1.5">
+      <StatusPill tone={tone} icon={statusIcon}>{statusLabel}</StatusPill>
+      <span className={cn("text-xs tabular-nums", metaLate ? "font-medium text-status-overdue" : "text-text-secondary")}>{meta}</span>
     </span>
-    <ArrowUpRight aria-hidden="true" className="hidden size-4 text-muted-foreground/45 transition-[color,transform] duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary sm:block" />
-    <span className="col-start-2 mt-1 truncate text-[11px] text-muted-foreground sm:hidden">{meta}</span>
-  </button>;
+  </>;
+  if (href) return <MendLink href={href} aria-current={selected ? "true" : undefined} className={className}>{children}</MendLink>;
+  return <button type="button" onClick={onClick} aria-current={selected ? "true" : undefined} className={className}>{children}</button>;
 }

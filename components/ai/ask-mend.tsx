@@ -65,7 +65,8 @@ export function AskMend() {
     finally{setBusy(false);}
   }
   return <>
-    <Button variant="outline" size="sm" className="gap-2" onClick={()=>setOpen(true)}><Bot className="size-4"/>Ask Mend<span className="hidden text-xs text-muted-foreground lg:inline">⌘J</span></Button>
+    <Button variant="secondary" size="sm" className="gap-2" onClick={()=>setOpen(true)}><Bot className="size-4"/>Ask Mend</Button>
+    <kbd className="ml-1 inline-grid h-5 min-w-5 place-items-center rounded-xs bg-muted px-1 font-mono text-[11px] font-medium text-text-secondary">⌘J</kbd>
     <Sheet open={open} onOpenChange={setOpen}><SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[520px]">
       <SheetHeader className="border-b px-5 py-5"><SheetTitle className="flex items-center gap-2"><Bot className="size-5 text-primary"/>Ask Mend</SheetTitle><SheetDescription>Your workspace assistant</SheetDescription></SheetHeader>
       <div className="flex items-center gap-2 border-b px-5 py-3"><Button size="sm" variant="outline" onClick={()=>{setThreadId(undefined);setMessages([]);setError("");}}><Plus className="size-4"/>New</Button>
