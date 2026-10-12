@@ -18,9 +18,9 @@ export function StatusPill({ tone, children, icon }: { tone: Tone; children: Rea
   return <span className={cn("inline-flex h-[22px] items-center gap-1 rounded-full pl-1.5 pr-2 text-xs font-medium whitespace-nowrap", toneClass[tone])}><Icon aria-hidden="true" className="size-[13px]" />{children}</span>;
 }
 
-export function TimeRing({ tone, left, initials, selected }: { tone: Tone; left: number; initials: string; selected?: boolean }) {
+export function TimeRing({ tone, left, initials }: { tone: Tone; left: number; initials: string }) {
   const fill = tone === "overdue" || tone === "done" ? 1 : left;
-  return <span data-selected={selected ? "true" : undefined} className={cn("relative grid size-10 shrink-0 place-items-center rounded-full bg-surface text-xs font-semibold tracking-[.02em]", tone === "overdue" ? "text-status-overdue" : "text-text-secondary")}>
+  return <span className={cn("relative grid size-10 shrink-0 place-items-center rounded-full bg-surface text-xs font-semibold tracking-[.02em]", tone === "overdue" ? "text-status-overdue" : "text-text-secondary")}>
     <svg viewBox="0 0 40 40" className="absolute inset-0 -rotate-90" aria-hidden="true">
       <circle cx="20" cy="20" r="18" style={{ fill: "none", stroke: "var(--border)", strokeWidth: 2 }} />
       {tone !== "closed" && <circle cx="20" cy="20" r="18" strokeLinecap="round" strokeDasharray={113.1} strokeDashoffset={113.1 * (1 - fill)} style={{ fill: "none", stroke: `var(--status-${tone})`, strokeWidth: 2, transition: "stroke-dashoffset 240ms cubic-bezier(.23,1,.32,1)" }} />}
