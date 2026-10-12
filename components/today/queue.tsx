@@ -54,11 +54,16 @@ function dayLabel(ms: number, nowMs: number) {
 }
 const byDue = (a: FollowUp, b: FollowUp) => Date.parse(a.dueAt) - Date.parse(b.dueAt);
 
-export function TodayQueue({ items: initialItems, now: serverNow }: { items: FollowUp[]; now: number; total: number }) {
+export function TodayQueue({ items: initialItems, now: serverNow }: { items: FollowUp[]; now: number }) {
   const router = useRouter();
   const mobile = useMobileDetail();
   const [items, setItems] = useState(initialItems);
   const [now, setNow] = useState(serverNow);
+  const signature = initialItems.map(item => `${item.id}:${item.revision}`).join();
+  const [seen, setSeen] = useState(signature);
+  const [seenNow, setSeenNow] = useState(serverNow);
+  if (seen !== signature) { setSeen(signature); setItems(initialItems); }
+  if (seenNow !== serverNow) { setSeenNow(serverNow); setNow(serverNow); }
   const [mendedId, setMendedId] = useState<string | null>(null);
   const [leavingId, setLeavingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
@@ -132,6 +137,12 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
   const counts: Record<Filter, number> = { all: items.length, overdue: 0, now: 0, soon: 0, waiting: 0 };
   for (const item of items) { const bucket = classifyFollowUp(item, now); if (bucket !== "completed") counts[bucket]++; }
 
+  function selectFilter(next: Filter) {
+    setFilter(next);
+    const list = next === "all" ? ordered : ordered.filter(item => classifyFollowUp(item, now) === next);
+    if (list.length && !list.some(item => item.id === selectedId)) setSelectedId(list[0].id);
+  }
+
   useEffect(() => {
     const index = ordered.findIndex(item => item.id === selectedId);
     if (index >= 0) { selectedIndex.current = index; return; }
@@ -173,12 +184,14 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
   const nowClock = cairoFormat({ hour: "numeric", minute: "2-digit" }, now);
   const entries: Entry[] = [];
   let previousDay = today;
+  let dividerShown = false;
   let nowPlaced = filter !== "all" || !visible.some(item => cairoDay(Date.parse(item.dueAt)) === today);
   for (const item of visible) {
     const due = Date.parse(item.dueAt);
     if (!nowPlaced && due >= now) { entries.push({ kind: "now" }); nowPlaced = true; }
     const day = cairoDay(due);
-    if (day !== today && day !== previousDay) entries.push({ kind: "day", label: dayLabel(due, now) });
+    if (day !== today && day !== previousDay) { entries.push({ kind: "day", label: dayLabel(due, now) }); dividerShown = true; }
+    else if (day === today && previousDay !== today && dividerShown) entries.push({ kind: "day", label: "Today" });
     previousDay = day;
     entries.push({ kind: "item", item });
   }
@@ -186,7 +199,7 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
 
   const line = <div>
     <div role="group" aria-label="Filter follow-ups" className="mb-4 flex w-max max-w-full gap-1 overflow-x-auto rounded-[12px] bg-desk p-1">
-      {filters.map(({ key, label, chip }) => <button key={key} type="button" aria-pressed={filter === key} onClick={() => setFilter(key)}
+      {filters.map(({ key, label, chip }) => <button key={key} type="button" aria-pressed={filter === key} onClick={() => selectFilter(key)}
         className={cn("t-label inline-flex h-8 shrink-0 items-center gap-2 rounded-[9px] px-3 whitespace-nowrap outline-none transition-colors duration-[var(--dur-quick)] focus-visible:outline-2 focus-visible:outline-ring", filter === key ? "bg-sheet shadow-chip text-foreground" : "text-text-secondary")}>
         {label}<span className={cn("t-caption num inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 !font-semibold", chip)}>{counts[key]}</span>
       </button>)}

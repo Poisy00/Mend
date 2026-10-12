@@ -3,6 +3,8 @@
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
 :root {
+  /* legacy alias: login form and document textarea */
+  --font-geist-sans:"Schibsted Grotesk Variable", system-ui, sans-serif;
   --canvas:#F1F2F4; --surface:#FFFFFF; --surface-hover:#F4F5F7; --popover:#FFFFFF; --sidebar:#F1F2F4; --document:#fffefd;
   --text-primary:#16181D; --text-secondary:#5A606C; --text-muted:#6B717D; --document-foreground:#282525;
   --primary:#4E3D8F; --primary-hover:#5E4CA3; --primary-foreground:#FFFFFF;
