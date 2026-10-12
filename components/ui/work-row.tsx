@@ -26,7 +26,7 @@ export function WorkRow({ title, subtitle, eyebrow, meta, metaLate, tone, status
     <TimeRing tone={tone} left={left} initials={initials} selected={selected} />
     <span className="min-w-0">
       {eyebrow && <span className="type-id block truncate text-text-secondary">{eyebrow}</span>}
-      <strong className={cn("mt-0.5 inline-block max-w-full truncate text-[15px] font-semibold leading-[1.3] tracking-[-.01em] text-text-primary", mended && "mend-stitch")}>{name}</strong>
+      <strong className={cn("mt-0.5 -mb-1 inline-block max-w-full truncate pb-1 text-[15px] font-semibold leading-[1.3] tracking-[-.01em] text-text-primary", mended && "mend-stitch")}>{name}</strong>
       <span className="mt-0.5 block truncate text-[13px] leading-[1.4] text-text-secondary">{subtitle}</span>
     </span>
     <span className="grid justify-items-end gap-1.5">
