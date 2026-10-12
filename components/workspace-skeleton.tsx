@@ -5,11 +5,11 @@ function Line({ width = "w-full", className = "" }: { width?: string; className?
 }
 
 function PageHeading({ eyebrow = true, action = false }: { eyebrow?: boolean; action?: boolean }) {
-  return <div className="flex items-end justify-between gap-5" aria-hidden="true"><div className="space-y-4">{eyebrow && <Line width="w-24" />}<Skeleton className="h-10 w-48 max-w-full" /><Line width="w-72 max-w-full" /></div>{action && <Skeleton className="h-10 w-36 rounded-lg" />}</div>;
+  return <div className="flex items-end justify-between gap-5" aria-hidden="true"><div className="space-y-4">{eyebrow && <Line width="w-24" />}<Skeleton className="h-8 w-48 max-w-full" /><Line width="w-72 max-w-full" /></div>{action && <Skeleton className="h-10 w-36 rounded-lg" />}</div>;
 }
 
 export function WorkRowSkeleton({ count = 4 }: { count?: number }) {
-  return <div aria-hidden="true">{Array.from({ length: count }, (_, index) => <div key={index} className="flex min-h-[78px] items-center gap-3 border-b border-border/70 px-3 py-4"><Skeleton className="size-10 shrink-0 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><Line width="w-36" /><Line width="w-52 max-w-full" /></div><div className="hidden space-y-2 sm:block"><Line width="w-20" /><Line width="w-24" /></div></div>)}</div>;
+  return <div aria-hidden="true">{Array.from({ length: count }, (_, index) => <div key={index} className="flex min-h-16 items-center gap-3 px-3 py-3"><Skeleton className="size-8 shrink-0 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><Line width="w-36" /><Line width="w-52 max-w-full" /></div><div className="hidden space-y-2 sm:block"><Skeleton className="ml-auto h-[22px] w-20 rounded-full" /><Line width="w-14" className="ml-auto" /></div></div>)}</div>;
 }
 
 function QueueSkeleton({ kind }: { kind: "cases" | "follow-ups" }) {
@@ -33,7 +33,13 @@ function FollowUpFormSkeleton() {
 }
 
 function TodaySkeleton() {
-  return <div role="status" aria-label="Loading Today"><PageHeading action /><div className="mt-8 grid border-y border-border lg:grid-cols-[minmax(0,1.55fr)_minmax(300px,.8fr)]"><section className="min-h-[410px] py-8 lg:border-r lg:pr-9"><Line width="w-28" /><Skeleton className="mt-3 h-7 w-40" /><div className="mt-7"><WorkRowSkeleton count={4} /></div></section><aside className="py-8 lg:pl-9"><Line width="w-24" /><Skeleton className="mt-3 h-7 w-48" /><Skeleton className="mt-7 h-[104px] w-full rounded-xl" /><Skeleton className="mt-3 h-[104px] w-full rounded-xl" /></aside></div></div>;
+  return <div role="status" aria-label="Loading Today" className="mend-skeleton-wrap">
+    <div className="flex items-end justify-between gap-5 border-b border-border pb-8" aria-hidden="true"><div className="space-y-3"><Line width="w-32" /><Skeleton className="h-8 w-56" /><Line width="w-72 max-w-full" /></div><Skeleton className="h-9 w-36 rounded-md" /></div>
+    <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]" aria-hidden="true">
+      <section className="min-w-0 pt-8 pb-8 lg:pr-8"><div className="flex items-center justify-between"><Skeleton className="h-6 w-28" /></div><div className="-mx-3 mt-5"><Skeleton className="mx-3 mb-2 h-3 w-16" /><WorkRowSkeleton count={4} /><Skeleton className="mx-3 mt-5 mb-2 h-3 w-24" /><WorkRowSkeleton count={2} /></div></section>
+      <aside className="border-t border-border pt-8 lg:border-t-0 lg:border-l lg:pl-8"><div className="space-y-6 divide-y divide-border">{[0, 1, 2].map(index => <div key={index} className="space-y-3 pt-6 first:pt-0"><Line width="w-20" /><Skeleton className="h-5 w-32" /><Line width="w-48" /><Skeleton className="h-1.5 w-full rounded-full" /></div>)}</div></aside>
+    </div>
+  </div>;
 }
 
 export function WorkspaceSkeleton({ area }: { area: "today" | "follow-ups" | "new-follow-up" | "cases" | "rcc" | "schedule" | "settings" }) {
