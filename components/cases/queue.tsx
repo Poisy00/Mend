@@ -9,9 +9,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/ui/status";
 import { CopyButton } from "@/components/ui/copy-button";
+import { useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs } from "@/components/focus-line/filter-tabs";
-import { LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
+import { LineIndicator, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { cairoDay, cairoFormat } from "@/components/focus-line/timeline";
 import { historyLabel } from "@/components/focus-line/actions";
 import { relativeTime } from "@/lib/display/relative";
@@ -56,6 +57,8 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
   const isMobile = useMobileDetail();
   const firstSearch = useRef(true);
   const [listKey, setListKey] = useState(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  useSlidingIndicator(listRef, selected?.id ?? null);
 
   useEffect(() => { if (!initialSelected) return; const timer = window.setTimeout(() => { void select(initialSelected, false); document.querySelector(`[data-row-id="${CSS.escape(initialSelected.id)}"]`)?.scrollIntoView({ block: "nearest" }); }, 0); return () => window.clearTimeout(timer); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -165,7 +168,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
           <FilterTabs label="Filter Cases" tabs={statusTabs} value={filter} onChange={value => { if (value !== filter) setFilter(value); }} />
           <p className="t-meta ml-auto text-text-secondary"><span className="num">{items.length}{nextCursor ? "+" : ""}</span> {items.length === 1 && !nextCursor ? "Case" : "Cases"}</p>
         </div>
-        <FadeSwap swapKey={listKey}>{loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <ul>{items.map((item, index) => { const d = caseDisplay(item); return <LineRow key={item.id} id={item.id} ends={spineEnds(index === 0, index === items.length - 1)} gutter={updatedGutter(item.updatedAt, now)} node={caseNode[item.status]} name={item.customerName || item.accountNumber} ident={item.humanId} subtitle={item.summary} label={d.label} quiet={item.status === "Closed"} selected={selected?.id === item.id} onSelect={() => void select(item)} mended={false} leaving={false} onStitchEnd={() => {}} />; })}</ul>}</FadeSwap>
+        <FadeSwap swapKey={listKey}>{loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <ul ref={listRef} data-indicator-host="" className="relative"><LineIndicator />{items.map((item, index) => { const d = caseDisplay(item); return <LineRow key={item.id} id={item.id} ends={spineEnds(index === 0, index === items.length - 1)} gutter={updatedGutter(item.updatedAt, now)} node={caseNode[item.status]} name={item.customerName || item.accountNumber} ident={item.humanId} subtitle={item.summary} label={d.label} quiet={item.status === "Closed"} selected={selected?.id === item.id} onSelect={() => void select(item)} mended={false} leaving={false} onStitchEnd={() => {}} />; })}</ul>}</FadeSwap>
         {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="secondary" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more Cases"}</Button>}
       </section>

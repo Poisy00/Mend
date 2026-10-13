@@ -35,7 +35,7 @@ export function FilterTabs<K extends string>({ tabs, value, onChange, label, var
     onChange(next.key);
     window.requestAnimationFrame(() => event.currentTarget.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
   }
-  return <div ref={strip} role={asTabs ? "tablist" : "group"} aria-label={label} onKeyDown={onKeyDown} className={cn("relative flex w-max max-w-full gap-1 overflow-x-auto rounded-[12px] bg-desk p-1", className)}>
+  return <div ref={strip} data-indicator-host="" role={asTabs ? "tablist" : "group"} aria-label={label} onKeyDown={onKeyDown} className={cn("relative flex w-max max-w-full gap-1 overflow-x-auto rounded-[12px] bg-desk p-1", className)}>
     <SlidingIndicator className="rounded-[9px] bg-sheet shadow-chip" />
     {tabs.map(({ key, label: text, count, tone = "neutral" }) => {
       const active = value === key;
