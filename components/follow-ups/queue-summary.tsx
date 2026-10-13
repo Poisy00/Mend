@@ -9,5 +9,5 @@ export function QueueSummary({ counts }: { counts: QueueCounts }) {
     { n: counts.waiting, text: "later", className: "text-text-secondary" },
   ].filter(segment => segment.n > 0);
   if (!segments.length) return <>Nothing waiting. Your queue is clear.</>;
-  return <>{segments.map((segment, index) => <span key={segment.text}>{index > 0 && " · "}<span className={`num font-medium ${segment.className}`}>{segment.n} {segment.text}</span></span>)}</>;
+  return <>{segments.map((segment, index) => <span key={segment.text}>{index > 0 && " · "}<span className={`font-medium ${segment.className}`}>{segment.n} {segment.text}</span></span>)}</>;
 }
