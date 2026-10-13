@@ -1,7 +1,7 @@
 "use client";
 import { MendDatePicker } from "@/components/ui/mend-date-picker";
 import { MendSelect } from "@/components/ui/mend-select";
-import { useEffect,useMemo,useRef,useState } from "react";
+import { useEffect,useLayoutEffect,useMemo,useRef,useState } from "react";
 import { toast } from "sonner";
 import { ArrowUpRight,ChevronDown,Clipboard,Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";import { PageHeader } from "@/components/ui/page-header";import { Kbd } from "@/components/ui/kbd";import { Input } from "@/components/ui/input";import { Label } from "@/components/ui/label";import { Textarea } from "@/components/ui/textarea";
@@ -122,7 +122,7 @@ return (
             <div className="mt-6 h-px bg-[#e7e3e0] min-[1100px]:mt-4" />
           </div>
           <div className="px-5 pb-6 sm:px-7">
-            <div className="overflow-hidden break-words" dangerouslySetInnerHTML={{__html:previewHtml}} />
+            <ScaledEmail html={previewHtml} />
             <details className="mt-5 text-xs"><summary className="cursor-pointer text-[#746f6b] hover:text-[#282525]">Plain-text version</summary><pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6">{draft.plain}</pre></details>
           </div>
         </div>
@@ -155,3 +155,35 @@ return (
 );
 }
 function Field({label,children,className=""}:{label:string;children:React.ReactNode;className?:string}){return <label className={`group block space-y-1.5 ${className}`}><span className="text-xs font-medium text-text-secondary transition-colors duration-[120ms] group-focus-within:text-primary">{label}</span>{children}</label>;}
+
+/** Shows the email at its natural width, scaled down to fit like an email-client preview. Below 0.6 it stops scaling and wraps instead. */
+const MIN_EMAIL_SCALE=0.6;
+type EmailFit={scale:number;width:number;height:number;wrap:boolean};
+function ScaledEmail({html}:{html:string}){
+  const outer=useRef<HTMLDivElement>(null),inner=useRef<HTMLDivElement>(null),natural=useRef(0);
+  const [fit,setFit]=useState<EmailFit>({scale:1,width:0,height:0,wrap:false});
+  useLayoutEffect(()=>{
+    natural.current=0;
+    const box=outer.current,content=inner.current;if(!box||!content)return;
+    const measure=()=>{
+      const available=box.clientWidth;
+      // Only an unconstrained layout reveals the email's natural width; wrapped layouts report the box width.
+      if(!content.dataset.wrap)natural.current=content.scrollWidth;
+      const width=natural.current;
+      const raw=width>0&&available>0?Math.min(1,available/width):1;
+      const wrap=raw<MIN_EMAIL_SCALE,scale=wrap?1:raw;
+      const next:EmailFit=scale<1?{scale,width:Math.floor(width*scale),height:Math.ceil(content.offsetHeight*scale),wrap:false}:{scale:1,width:0,height:0,wrap};
+      setFit(current=>current.scale===next.scale&&current.width===next.width&&current.height===next.height&&current.wrap===next.wrap?current:next);
+    };
+    measure();
+    const observer=new ResizeObserver(measure);observer.observe(box);observer.observe(content);
+    return()=>observer.disconnect();
+  },[html]);
+  const scaled=fit.scale<1;
+  // The email's fixed 620px table cannot shrink in a narrow box, so below the minimum scale it drops its fixed width and wraps.
+  return <div ref={outer} className="overflow-hidden break-words">
+    <div className="overflow-hidden" style={scaled?{width:fit.width,height:fit.height}:undefined}>
+      <div ref={inner} data-wrap={fit.wrap||undefined} className={fit.wrap?"[&_table]:!w-full [&_table]:!max-w-full":""} style={scaled?{width:"max-content",transform:`scale(${fit.scale})`,transformOrigin:"top left"}:undefined} dangerouslySetInnerHTML={{__html:html}} />
+    </div>
+  </div>;
+}
