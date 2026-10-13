@@ -125,9 +125,10 @@ function SidebarContent({ currentArea, user, schedule, onAsk, onNavigate }: { cu
   </>;
 }
 
-function Logo({ width, alt = "" }: { width: number; alt?: string }) {
+/** `flight` names the logo for the sign-in view transition (see globals.css). Only one logo on screen may carry it. */
+function Logo({ width, alt = "", flight }: { width: number; alt?: string; flight?: "desktop" | "mobile" }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src="/mend-logo.svg" width={width} height={Math.round(width * 35 / 122)} alt={alt} className="mend-logo h-auto" style={{ width }} />;
+  return <img src="/mend-logo.svg" width={width} height={Math.round(width * 35 / 122)} alt={alt} className={cn("mend-logo h-auto", flight === "desktop" && "mend-flight-desktop", flight === "mobile" && "mend-flight-mobile")} style={{ width }} />;
 }
 
 export function MendShell({ children, user, schedule }: { children: React.ReactNode; user: ShellUser; schedule: ShellSchedule }) {
@@ -220,13 +221,13 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
     <div className="min-h-dvh bg-desk text-foreground">
       <a href="#main-content" className="sr-only z-50 rounded-md bg-sheet px-3 py-2 t-label shadow-chip focus:not-sr-only focus:fixed focus:top-2 focus:left-2">Skip to content</a>
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-[232px] flex-col px-3 py-3 md:flex">
-        <MendLink href="/" className="mb-5 flex h-10 items-center rounded-[8px] px-2.5 outline-none focus-visible:outline-2 focus-visible:outline-ring"><Logo width={88} alt="Mend" /></MendLink>
+        <MendLink href="/" className="mb-5 flex h-10 items-center rounded-[8px] px-2.5 outline-none focus-visible:outline-2 focus-visible:outline-ring"><Logo width={88} alt="Mend" flight="desktop" /></MendLink>
         <SidebarContent currentArea={currentArea} user={user} schedule={schedule} onAsk={openAsk} />
       </aside>
       <div ref={sentinel} aria-hidden="true" className="absolute top-0 h-px w-px md:hidden" />
       <header className={cn("sticky top-0 z-10 grid h-14 grid-cols-[1fr_auto_1fr] items-center bg-desk px-2 transition-shadow duration-[var(--dur-quick)] md:hidden", scrolled && "shadow-[0_1px_0_var(--border)]")}>
         <div><Button variant="ghost" size="icon-lg" onClick={() => setOpen(true)} aria-label="Open navigation"><Menu /></Button></div>
-        <MendLink href="/" aria-label="Mend home"><Logo width={72} /></MendLink>
+        <MendLink href="/" aria-label="Mend home"><Logo width={72} flight="mobile" /></MendLink>
         <div className="flex justify-end"><Button variant="ghost" size="icon-lg" onClick={openAsk} aria-label="Ask Mend" aria-keyshortcuts="Control+J Meta+J"><MessagesSquare /></Button></div>
       </header>
       <div className="md:py-2 md:pr-2 md:pl-[240px]">
