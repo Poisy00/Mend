@@ -1,4 +1,5 @@
 "use client";
+import { SettingsSection } from "@/components/account/section";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -42,16 +43,14 @@ export function AIConnection() {
     } catch(e) {setError(e instanceof Error?e.message:"Connection request failed");}
     finally {setBusy(false);}
   }
-  return <section className="mt-10 border-t border-border pt-7" aria-labelledby="chatgpt-connection">
-    <h2 id="chatgpt-connection" className="text-xl font-semibold">Ask Mend · ChatGPT</h2>
-    <p className="mt-2 text-sm text-muted-foreground">Connect your ChatGPT account to use Ask Mend in this workspace. Your conversation and connection are private to your Mend account.</p>
-    {connection.status==="connected"?<div className="mt-4 space-y-3"><p className="text-sm">Connected{connection.accountLabel?` as ${connection.accountLabel}`:""}.</p><Button variant="outline" disabled={busy} onClick={()=>void action("DELETE","disconnect")}>Disconnect ChatGPT</Button></div>:
-      pending?<div className="mt-4 space-y-3 rounded-xl border bg-card p-5"><p className="text-sm">Open the authorization page, sign in to ChatGPT, and enter this code:</p>
-        <p className="font-mono text-2xl font-semibold tracking-widest" aria-label={`Authorization code ${pending.userCode}`}>{pending.userCode}</p>
+  return <SettingsSection id="chatgpt-connection" title="Ask Mend with ChatGPT" description="Connect your ChatGPT account to use Ask Mend. Your conversations are private to your Mend account.">
+    {connection.status==="connected"?<div className="space-y-3"><p className="t-body">Connected{connection.accountLabel?` as ${connection.accountLabel}`:""}.</p><Button variant="secondary" disabled={busy} onClick={()=>void action("DELETE","disconnect")}>Disconnect ChatGPT</Button></div>:
+      pending?<div className="space-y-3 rounded-[12px] bg-secondary p-5"><p className="t-body">Open the authorization page, sign in to ChatGPT, and enter this code:</p>
+        <p className="num text-2xl font-semibold tracking-widest" aria-label={`Authorization code ${pending.userCode}`}>{pending.userCode}</p>
         {pending.verificationUrl&&<Button asChild><a href={pending.verificationUrl} target="_blank" rel="noopener noreferrer">Open ChatGPT authorization</a></Button>}
-        <p className="text-xs text-muted-foreground">Checking for approval automatically. Expires {pending.expiresAt?new Date(pending.expiresAt).toLocaleTimeString():"soon"}.</p>
-        <Button variant="outline" disabled={busy} onClick={()=>void action("DELETE","cancel")}>Cancel</Button></div>:
-      <Button className="mt-4" disabled={busy||connection.status==="loading"} onClick={()=>void action("POST")}>{busy?"Connecting…":"Connect ChatGPT"}</Button>}
-    {error&&<p className="mt-3 text-sm text-destructive" role="alert">{error}</p>}
-  </section>;
+        <p className="t-caption text-text-secondary">Checking for approval automatically. Expires {pending.expiresAt?new Date(pending.expiresAt).toLocaleTimeString():"soon"}.</p>
+        <Button variant="secondary" disabled={busy} onClick={()=>void action("DELETE","cancel")}>Cancel</Button></div>:
+      <Button disabled={busy||connection.status==="loading"} onClick={()=>void action("POST")}>{busy?"Connecting…":"Connect ChatGPT"}</Button>}
+    {error&&<p className="t-meta mt-3 text-destructive" role="alert">{error}</p>}
+  </SettingsSection>;
 }
