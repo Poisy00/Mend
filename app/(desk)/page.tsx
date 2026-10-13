@@ -1,5 +1,5 @@
-import { Plus } from "lucide-react";
 import { MendLink as Link } from "@/components/mend-link";
+import { NewFollowUpTrigger } from "@/components/follow-ups/new-follow-up-dialog";
 import { TodayQueue } from "@/components/today/queue";
 import { Button } from "@/components/ui/button";
 import { cairoDateLabel, focusHeadline } from "@/components/focus-line/headline";
@@ -25,7 +25,7 @@ export default async function TodayPage() {
           <h1 className={overdue ? "t-title mt-2 text-status-overdue" : "t-title mt-2"}>{headline}</h1>
           {description && <p className="t-body-lg mt-2 max-w-[60ch] text-text-secondary">{description}</p>}
         </div>
-        <div className="flex items-center gap-2"><Button asChild><Link href="/follow-ups/new"><Plus />New follow-up</Link></Button></div>
+        <div className="flex items-center gap-2"><NewFollowUpTrigger /></div>
       </div>
     </div>
     <section className="min-w-0 pt-8 pb-8" aria-label="Follow-ups">

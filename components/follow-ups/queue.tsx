@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 import type { FollowUp, FollowUpCommand } from "@/lib/follow-ups/types";
 import { classifyFollowUp, rankFollowUp } from "@/lib/follow-ups/rules";
@@ -15,7 +15,6 @@ import { Kbd } from "@/components/ui/kbd";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { WorkRowSkeleton } from "@/components/workspace-skeleton";
-import { MendLink as Link } from "@/components/mend-link";
 import { refreshQueueCounts } from "@/components/use-queue-counts";
 import { useMobileDetail } from "@/components/use-mobile-detail";
 import { clockTime, useFollowUpActions } from "@/components/focus-line/actions";
@@ -25,6 +24,7 @@ import { focusHeadline } from "@/components/focus-line/headline";
 import { LineActions, LineDay, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { buildLineEntries, byDue, cairoFormat, gutterTime } from "@/components/focus-line/timeline";
 import { FollowUpDetail, outcomeOptions } from "./detail";
+import { NewFollowUpTrigger } from "./new-follow-up-dialog";
 
 type Page = { items: FollowUp[]; nextCursor: string | null };
 type Filter = "all" | QueueGroup | "completed";
@@ -118,6 +118,12 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
   }
   async function saveProfile(item: FollowUp, profile: Record<string, unknown>) { const response = await fetch(`/api/follow-ups/${item.id}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ expectedRevision: item.revision, profile }) }); const data = await response.json() as { item?: FollowUp; error?: string }; if (!response.ok || !data.item) { toast.error(data.error ?? "Unable to save the follow-up profile."); await refresh(); return false; } setSelected(data.item); await refresh(); toast.success("Follow-up profile saved."); return true; }
 
+  // A follow-up created from the dialog: refetch the list, select the new one, keep the queue counts current.
+  function created(item?: FollowUp) {
+    if (item) { setSelected(item); setMobileOpen(false); }
+    refresh().catch(() => toast.error("Unable to load follow-ups"));
+    void refreshQueueCounts();
+  }
   function select(item: FollowUp) { if (item.id !== selected?.id) setPickOpen(false); setSelected(item); }
   function selectFilter(next: Filter) {
     setFilter(next);
@@ -169,7 +175,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
         <label className="t-label flex min-h-10 cursor-pointer items-center gap-2.5 rounded-[9px] px-2 text-text-secondary hover-fine:bg-surface-hover hover-fine:text-text-primary">
           <Switch checked={notificationsEnabled} onCheckedChange={checked => { if (checked) void enableNotifications(); else setNotificationsEnabled(false); }} aria-label="Browser reminders" />Browser reminders
         </label>
-        <Button asChild><Link href="/follow-ups/new"><Plus />New follow-up</Link></Button>
+        <NewFollowUpTrigger onCreated={created} />
       </>} />
     <div className={cn("mt-8 grid items-start gap-10", !isMobile && current && "grid-cols-[minmax(0,1fr)_400px]")}>
       <section className="min-h-[500px] min-w-0" aria-label="Follow-ups">

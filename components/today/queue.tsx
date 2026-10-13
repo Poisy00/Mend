@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MendLink as Link } from "@/components/mend-link";
 import { FocusDetail } from "@/components/today/focus-detail";
 import { useMobileDetail } from "@/components/use-mobile-detail";
-import { Button } from "@/components/ui/button";
+import { NewFollowUpTrigger } from "@/components/follow-ups/new-follow-up-dialog";
 import { Kbd } from "@/components/ui/kbd";
 import { useFollowUpActions } from "@/components/focus-line/actions";
 import { FadeSwap } from "@/components/focus-line/fade";
@@ -95,7 +94,7 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
   if (!items.length) return <div className="py-16 text-center">
     <h3 className="t-heading">Queue clear.</h3>
     <p className="t-meta mt-1 text-text-secondary">New follow-ups show up here at the time they&apos;re due.</p>
-    <Button asChild variant="secondary" className="mt-5"><Link href="/follow-ups/new">New follow-up</Link></Button>
+    <NewFollowUpTrigger variant="secondary" className="mt-5">New follow-up</NewFollowUpTrigger>
   </div>;
 
   const nowClock = cairoFormat({ hour: "numeric", minute: "2-digit" }, now);
