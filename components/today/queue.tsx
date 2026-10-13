@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { FocusDetail } from "@/components/today/focus-detail";
 import { useMobileDetail } from "@/components/use-mobile-detail";
 import { NewFollowUpTrigger } from "@/components/follow-ups/new-follow-up-dialog";
@@ -8,7 +9,7 @@ import { Kbd } from "@/components/ui/kbd";
 import { useFollowUpActions } from "@/components/focus-line/actions";
 import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs, type FilterTab } from "@/components/focus-line/filter-tabs";
-import { LineActions, LineDay, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
+import { LineActions, LineDay, LineIndicator, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { buildLineEntries, byDue, cairoFormat, gutterTime } from "@/components/focus-line/timeline";
 import { formatAccountIfComplete } from "@/lib/display/format";
 import { followUpDisplay, type QueueGroup } from "@/lib/follow-ups/display";
@@ -41,6 +42,8 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
     return (first.find(item => ["overdue", "now"].includes(classifyFollowUp(item, serverNow))) ?? first[0])?.id ?? null;
   });
   const selectedIndex = useRef(0);
+  const listRef = useRef<HTMLUListElement>(null);
+  useSlidingIndicator(listRef, mobile ? null : selectedId);
   const { resolve, snooze, finish, mendedId, leavingId } = useFollowUpActions({
     onResolved: item => setItems(current => current.filter(entry => entry.id !== item.id)),
     onSnoozed: updated => setItems(current => current.map(entry => entry.id === updated.id ? updated : entry)),
@@ -102,7 +105,7 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
 
   const line = <div>
     <FilterTabs label="Filter follow-ups" className="mb-4" tabs={tabs.map(tab => ({ ...tab, count: counts[tab.key] }))} value={filter} onChange={selectFilter} />
-    <FadeSwap swapKey={filter}>{entries.length ? <ul>
+    <FadeSwap swapKey={filter}>{entries.length ? <ul ref={listRef} data-indicator-host="" className="relative"><LineIndicator />
       {entries.map((entry, index) => {
         const ends = spineEnds(index === 0, index === entries.length - 1);
         if (entry.kind === "now") return <LineNow key="now" clock={nowClock} ends={ends} />;

@@ -5,6 +5,7 @@ import { AlarmClock, Check } from "lucide-react";
 import { MendLink as Link } from "@/components/mend-link";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { SlidingIndicator } from "@/components/ui/sliding-indicator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { displayName } from "@/lib/display/format";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,8 @@ const nodeTone: Record<LineNode, string> = {
 };
 const actionButton = "relative bg-sheet shadow-chip before:absolute before:-inset-1 hover-fine:bg-surface-hover";
 const spine = "relative self-stretch grid place-items-center before:absolute before:left-1/2 before:w-0.5 before:-translate-x-px before:bg-border";
+/** The accent highlight behind the selected row. Put it first in the list `<ul>` (which must be `relative` and `data-indicator-host`). */
+export function LineIndicator() { return <SlidingIndicator as="li" className="rounded-[10px] bg-accent" />; }
 export const spineEnds = (first: boolean, last: boolean) => cn(first ? "before:top-1/2" : "before:top-0", last ? "before:bottom-1/2" : "before:bottom-0");
 const rowClass = "relative grid w-full min-h-[68px] grid-cols-[68px_22px_minmax(0,1fr)_auto] items-center gap-x-3 rounded-[10px] pr-3 text-left outline-none transition-colors duration-[var(--dur-quick)] hover-fine:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring";
 const lineRow = "grid grid-cols-[68px_22px_minmax(0,1fr)] items-center gap-x-3";
@@ -49,7 +52,7 @@ export function LineRow({ id, ends, gutter, node, name, ident, tag, subtitle, la
   label: string; labelTone?: "overdue" | "now"; quiet?: boolean; selected: boolean; href?: string; onSelect: () => void;
   mended: boolean; leaving: boolean; onStitchEnd: () => void; actions?: ReactNode;
 }) {
-  const className = cn(rowClass, selected && "bg-accent hover-fine:bg-accent", actions && "[@media(hover:none)]:pb-14");
+  const className = cn(rowClass, "[--ind-bg:var(--accent)]", selected && "hover-fine:bg-transparent", actions && "[@media(hover:none)]:pb-14");
   const children = <>
     <span className="t-meta num text-right text-text-secondary">{gutter}</span>
     <span className={cn(spine, ends)}><span className={cn("relative size-2.5 rounded-full", nodeTone[node])} /></span>
@@ -66,8 +69,8 @@ export function LineRow({ id, ends, gutter, node, name, ident, tag, subtitle, la
   return <li data-leaving={leaving || undefined} className={cn("grid grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-200 ease-[var(--ease-out)] motion-reduce:transition-none", leaving && "grid-rows-[0fr] opacity-0")}>
     <div className={cn("group/actions relative min-h-0", leaving && "overflow-hidden")}>
       {href
-        ? <Link href={href} data-row-id={id} className={className}>{children}</Link>
-        : <button type="button" data-row-id={id} onClick={onSelect} aria-current={selected ? "true" : undefined} className={className}>{children}</button>}
+        ? <Link href={href} data-row-id={id} data-indicator-key={id} data-indicator-active={selected || undefined} className={className}>{children}</Link>
+        : <button type="button" data-row-id={id} data-indicator-key={id} data-indicator-active={selected || undefined} onClick={onSelect} aria-current={selected ? "true" : undefined} className={className}>{children}</button>}
       {actions && <div className="absolute top-1/2 right-3 z-10 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity duration-[var(--dur-quick)] group-hover/actions:opacity-100 group-focus-within/actions:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:top-auto [@media(hover:none)]:bottom-2.5 [@media(hover:none)]:translate-y-0 [@media(hover:none)]:opacity-100">{actions}</div>}
     </div>
   </li>;

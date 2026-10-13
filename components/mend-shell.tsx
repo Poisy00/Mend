@@ -52,7 +52,7 @@ function NavLinks({ currentArea, onNavigate }: { currentArea: Area; onNavigate?:
   const needCall = counts.overdue + counts.now;
   const list = useRef<HTMLElement>(null);
   useSlidingIndicator(list, navigation.some(item => item.id === currentArea) ? currentArea : null);
-  return <nav ref={list} aria-label="Workspace" className="relative flex flex-col gap-px">
+  return <nav ref={list} data-indicator-host="" aria-label="Workspace" className="relative flex flex-col gap-px">
     <SlidingIndicator className="rounded-[8px] bg-sheet shadow-chip" />
     {navigation.map(({ id, label, href, icon: Icon }) => {
       const active = currentArea === id;

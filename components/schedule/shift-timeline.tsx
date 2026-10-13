@@ -74,7 +74,7 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
       <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("t-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
       <span />
     </div>
-    <div ref={rowsRef} className="relative">
+    <div ref={rowsRef} data-indicator-host="" className="relative">
       <SlidingIndicator className="rounded-[10px] bg-accent" />
       {rows.map(row => {
         const isActive = row.index === activeIndex;

@@ -18,10 +18,11 @@ import { WorkRowSkeleton } from "@/components/workspace-skeleton";
 import { refreshQueueCounts } from "@/components/use-queue-counts";
 import { useMobileDetail } from "@/components/use-mobile-detail";
 import { clockTime, useFollowUpActions } from "@/components/focus-line/actions";
+import { useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs, type FilterTab } from "@/components/focus-line/filter-tabs";
 import { focusHeadline } from "@/components/focus-line/headline";
-import { LineActions, LineDay, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
+import { LineActions, LineDay, LineIndicator, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { buildLineEntries, byDue, cairoFormat, gutterTime } from "@/components/focus-line/timeline";
 import { FollowUpDetail, outcomeOptions } from "./detail";
 import { NewFollowUpTrigger } from "./new-follow-up-dialog";
@@ -63,6 +64,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
   const firstSearch = useRef(true);
   const scrolledToInitial = useRef(false);
   const visibleRef = useRef<FollowUp[]>([]);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const replace = useCallback((updated: FollowUp) => {
     setItems(current => current.some(entry => entry.id === updated.id) ? current.map(entry => entry.id === updated.id ? updated : entry) : [updated, ...current]);
@@ -98,6 +100,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
   const visible = filter === "completed" ? completed : filter === "all" ? open : open.filter(item => classifyFollowUp(item, now) === filter);
   useEffect(() => { visibleRef.current = visible; });
   const current = selected && (items.find(item => item.id === selected.id) ?? selected);
+  useSlidingIndicator(listRef, isMobile ? null : current?.id ?? null);
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 30000); return () => window.clearInterval(timer); }, []);
   useEffect(() => { if (!selected || scrolledToInitial.current) return; scrolledToInitial.current = true; document.querySelector(`[data-row-id="${CSS.escape(selected.id)}"]`)?.scrollIntoView({ block: "nearest" }); }, [selected]);
@@ -186,7 +189,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
         </div>
         <FadeSwap swapKey={filter}>{loading ? <div className="py-4" aria-label="Loading follow-ups"><WorkRowSkeleton count={5} /></div>
           : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">{query ? "No matching follow-ups." : "No follow-ups here yet."}</h2><p className="t-meta mt-1 text-text-secondary">{query ? "Try a different name, account or case number." : "Create one to keep the next call in sight."}</p></div>
-            : entries.length ? <ul>
+            : entries.length ? <ul ref={listRef} data-indicator-host="" className="relative"><LineIndicator />
               {entries.map((entry, index) => {
                 const ends = spineEnds(index === 0, index === entries.length - 1);
                 if (entry.kind === "now") return <LineNow key="now" clock={nowClock} ends={ends} />;
