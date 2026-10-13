@@ -49,3 +49,4 @@ next-env.d.ts
 
 # bridge worker local secrets
 /workers/db-bridge/.dev.vars
+!.env.example

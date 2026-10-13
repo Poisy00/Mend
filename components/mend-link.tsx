@@ -15,8 +15,8 @@ type MendLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   prefetch?: boolean;
 };
 
-// Vinext compatibility: native next/link navigation and prefetch fail in the
-// deployed production build. Keep this wrapper until a Vinext upgrade is verified.
+// Originally a Vinext workaround. On Next.js it still gives MendShell a navigation hook (startTransition + NavigationContext),
+// so keep it rather than switching to next/link.
 export function MendLink({ href, replace = false, prefetch = false, onClick, onMouseEnter, target, download, ...props }: MendLinkProps) {
   const router = useRouter();
   const navigation = useContext(NavigationContext);
