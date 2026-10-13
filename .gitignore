@@ -46,3 +46,11 @@ next-env.d.ts
 /work/
 /.dev.vars
 *.tsbuildinfo
+
+# bridge worker local secrets
+/workers/db-bridge/.dev.vars
+!.env.example
+
+# local secrets and bridge state
+/.secrets/
+/workers/db-bridge/.wrangler/

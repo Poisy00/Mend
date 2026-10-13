@@ -1,0 +1,13 @@
+{
+  "name": "mend-db",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-05-15",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mend",
+      "database_id": "afc2cc48-874f-4bbe-89ff-d54f91c6d021",
+      "migrations_dir": "../../drizzle"
+    }
+  ]
+}
