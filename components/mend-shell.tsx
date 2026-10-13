@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { MendLink } from "@/components/mend-link";
+import { MendLink, NavigationContext } from "@/components/mend-link";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { CalendarDays, ChevronsUpDown, FolderClosed, Headset, Inbox, Menu, MessagesSquare, PhoneForwarded } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -131,7 +132,17 @@ function Logo({ width, alt = "" }: { width: number; alt?: string }) {
 
 export function MendShell({ children, user, schedule }: { children: React.ReactNode; user: ShellUser; schedule: ShellSchedule }) {
   const pathname = usePathname();
-  const currentArea = areaFromPathname(pathname);
+  const [isPending, startNavigation] = useTransition();
+  const [heading, setHeading] = useState<{ from: string; to: string } | null>(null);
+  // Navigating means we left `from` for another path that has not arrived yet. The transition stays pending until it does.
+  const navigating = isPending && heading !== null && heading.from === pathname && heading.to !== pathname;
+  const go = useCallback((navigate: () => void, to: string) => {
+    setHeading({ from: window.location.pathname, to });
+    startNavigation(navigate);
+  }, []);
+  const navigation = useMemo(() => ({ go }), [go]);
+  // The sidebar follows the destination at once instead of waiting for the page.
+  const currentArea = areaFromPathname(navigating ? heading.to : pathname);
   const [open, setOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -205,7 +216,7 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
   }, []);
 
   if (sessionExpired) return null;
-  return <TooltipProvider delayDuration={400} skipDelayDuration={300}>
+  return <NavigationContext.Provider value={navigation}><TooltipProvider delayDuration={400} skipDelayDuration={300}>
     <div className="min-h-dvh bg-desk text-foreground">
       <a href="#main-content" className="sr-only z-50 rounded-md bg-sheet px-3 py-2 t-label shadow-chip focus:not-sr-only focus:fixed focus:top-2 focus:left-2">Skip to content</a>
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-[232px] flex-col px-3 py-3 md:flex">
@@ -219,8 +230,9 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
         <div className="flex justify-end"><Button variant="ghost" size="icon-lg" onClick={openAsk} aria-label="Ask Mend" aria-keyshortcuts="Control+J Meta+J"><MessagesSquare /></Button></div>
       </header>
       <div className="md:py-2 md:pr-2 md:pl-[240px]">
-        <div className="min-h-[calc(100dvh-56px)] bg-sheet md:min-h-[calc(100dvh-16px)] md:rounded-[var(--radius-sheet)] md:shadow-sheet">
-          <main id="main-content" className="mx-auto w-full max-w-[1240px] px-4 pt-6 pb-16 md:px-10 md:pt-10 xl:px-12">{children}</main>
+        <div className="relative min-h-[calc(100dvh-56px)] overflow-clip bg-sheet md:min-h-[calc(100dvh-16px)] md:rounded-[var(--radius-sheet)] md:shadow-sheet">
+          <div aria-hidden="true" data-pending={navigating || undefined} className="mend-progress" />
+          <main id="main-content" data-pending={navigating || undefined} aria-busy={navigating || undefined} className="mend-main mx-auto w-full max-w-[1240px] px-4 pt-6 pb-16 md:px-10 md:pt-10 xl:px-12"><FadeSwap swapKey={pathname} speed="page">{children}</FadeSwap></main>
         </div>
       </div>
       <Sheet open={open} onOpenChange={setOpen}>
@@ -234,5 +246,5 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
       </Sheet>
       <AskMend open={askOpen} onOpenChange={setAskOpen} />
     </div>
-  </TooltipProvider>;
+  </TooltipProvider></NavigationContext.Provider>;
 }

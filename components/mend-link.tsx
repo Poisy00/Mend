@@ -1,7 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { AnchorHTMLAttributes, MouseEvent } from "react";
+import { createContext, startTransition, useContext, type AnchorHTMLAttributes, type MouseEvent } from "react";
+
+/**
+ * Lets MendShell see client navigations: `go` runs a navigation inside a transition so the current
+ * page stays on screen until the next one is ready, and records where we are heading.
+ */
+export const NavigationContext = createContext<{ go: (navigate: () => void, destination: string) => void } | null>(null);
 
 type MendLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: string;
@@ -13,6 +19,7 @@ type MendLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
 // deployed production build. Keep this wrapper until a Vinext upgrade is verified.
 export function MendLink({ href, replace = false, prefetch = false, onClick, onMouseEnter, target, download, ...props }: MendLinkProps) {
   const router = useRouter();
+  const navigation = useContext(NavigationContext);
 
   function navigate(event: MouseEvent<HTMLAnchorElement>) {
     onClick?.(event);
@@ -21,8 +28,10 @@ export function MendLink({ href, replace = false, prefetch = false, onClick, onM
     const destination = new URL(href, window.location.href);
     if (destination.origin !== window.location.origin) return;
     event.preventDefault();
-    if (replace) router.replace(destination.pathname + destination.search + destination.hash);
-    else router.push(destination.pathname + destination.search + destination.hash);
+    const to = destination.pathname + destination.search + destination.hash;
+    const run = () => { if (replace) router.replace(to); else router.push(to); };
+    if (navigation) navigation.go(run, destination.pathname);
+    else startTransition(run);
   }
 
   return <a href={href} target={target} download={download} onClick={navigate} onMouseEnter={event => {
