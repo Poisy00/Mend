@@ -7,6 +7,7 @@ import { CalendarDays, ChevronsUpDown, FolderClosed, Headset, Inbox, Menu, Messa
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
+import { SlidingIndicator, useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AskMend } from "@/components/ai/ask-mend";
@@ -36,7 +37,8 @@ function areaFromPathname(pathname: string): Area {
 }
 
 const itemClass = "relative flex h-11 w-full items-center gap-2.5 rounded-[8px] px-2.5 t-label text-text-secondary outline-none transition-[background-color,color,box-shadow,transform] duration-[var(--dur-quick)] ease-[var(--ease-out)] active:scale-[0.96] motion-move before:absolute before:inset-x-0 before:-inset-y-[2px] hover-fine:bg-black/[.04] hover-fine:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:h-9 dark:hover-fine:bg-white/[.05]";
-const activeClass = "bg-sheet text-foreground shadow-chip hover-fine:bg-sheet dark:hover-fine:bg-sheet";
+const activeClass = "text-foreground hover-fine:bg-transparent dark:hover-fine:bg-transparent";
+const indicatorVars = "[--ind-bg:var(--sheet)] [--ind-shadow:var(--chip-shadow)]";
 
 function useNow(initial: number, intervalMs = 60_000) {
   const [now, setNow] = useState(initial);
@@ -47,11 +49,14 @@ function useNow(initial: number, intervalMs = 60_000) {
 function NavLinks({ currentArea, onNavigate }: { currentArea: Area; onNavigate?: () => void }) {
   const counts = useQueueCounts();
   const needCall = counts.overdue + counts.now;
-  return <nav aria-label="Workspace" className="flex flex-col gap-px">
+  const list = useRef<HTMLElement>(null);
+  useSlidingIndicator(list, navigation.some(item => item.id === currentArea) ? currentArea : null);
+  return <nav ref={list} aria-label="Workspace" className="relative flex flex-col gap-px">
+    <SlidingIndicator className="rounded-[8px] bg-sheet shadow-chip" />
     {navigation.map(({ id, label, href, icon: Icon }) => {
       const active = currentArea === id;
       const count = id === "follow-ups" ? needCall : 0;
-      return <MendLink key={id} href={href} prefetch onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn(itemClass, active && activeClass)}>
+      return <MendLink key={id} href={href} prefetch onClick={onNavigate} data-indicator-key={id} data-indicator-active={active || undefined} aria-current={active ? "page" : undefined} className={cn(itemClass, indicatorVars, active && activeClass)}>
         <Icon aria-hidden="true" strokeWidth={1.75} className={cn("size-4 shrink-0", active ? "text-primary" : "text-text-secondary")} />
         <span>{label}</span>
         {count > 0 && <>

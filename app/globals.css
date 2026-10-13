@@ -125,12 +125,17 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
 
 /* Detail pane: first selection only, slides in 8px */
 .mend-pane { transition:opacity 200ms var(--ease-out), translate 200ms var(--ease-out); @starting-style { opacity:0; translate:8px 0; } }
+/* Selection indicator: one element slides and resizes to the active item. Placement without a slide is done inline with transition:none. */
+.mend-indicator { position:absolute; top:0; left:0; z-index:0; pointer-events:none; opacity:0; transition:transform 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out), opacity 150ms var(--ease-out); }
+/* Before the indicator is placed (server render, first paint), the active item draws its own highlight so nothing pops in. */
+:not([data-indicator-ready]) > [data-indicator-active] { background:var(--ind-bg, transparent); box-shadow:var(--ind-shadow, none); }
 /* Skeletons are static and only appear if loading is slow */
 .mend-skeleton-wrap { transition:opacity 150ms var(--ease-out) 300ms; @starting-style { opacity:0; } }
 
 @media (prefers-reduced-motion: reduce) {
   .motion-move { transition-property:opacity, background-color, color, box-shadow !important; }
   .mend-pane { translate:none; }
+  .mend-indicator { transition:opacity 150ms var(--ease-out); }
   @keyframes mend-pop-in { from { opacity:0; scale:1; } }
   @keyframes mend-pop-out { to { opacity:0; scale:1; } }
   [data-slot="skeleton"] { animation:none; }

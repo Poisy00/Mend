@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef } from "react";
+import { SlidingIndicator, useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { cn } from "@/lib/utils";
 import { activeShift, type DayException, type DayPlan, type WeekPattern } from "@/lib/schedule/rules";
 
@@ -22,6 +24,8 @@ export function cairoWeekdayIndex(now: Date) {
 type Row = { index: number; date: string; plan: DayPlan; exception: boolean; s: number; e: number; pauses: { a: number; b: number }[] };
 
 export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { week: WeekPattern; exceptions: DayException[]; selected: number; onSelect: (index: number) => void; now: Date }) {
+  const rowsRef = useRef<HTMLDivElement>(null);
+  useSlidingIndicator(rowsRef, String(selected));
   const today = cairoNow(now);
   const todayIndex = new Date(`${today.date}T12:00:00Z`).getUTCDay();
   const sunday = Date.parse(`${today.date}T12:00:00Z`) - todayIndex * 86_400_000;
@@ -70,7 +74,8 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
       <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("t-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
       <span />
     </div>
-    <div>
+    <div ref={rowsRef} className="relative">
+      <SlidingIndicator className="rounded-[10px] bg-accent" />
       {rows.map(row => {
         const isActive = row.index === activeIndex;
         const marker = isActive ? markerFor(row) : null;
@@ -79,7 +84,7 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
         const barStyle = row.exception
           ? { left: pct(row.s), width: `${((row.e - row.s) / span) * 100}%`, backgroundImage: "repeating-linear-gradient(135deg, var(--accent) 0 4px, transparent 4px 8px)" }
           : { left: pct(row.s), width: `${((row.e - row.s) / span) * 100}%` };
-        return <button key={row.index} type="button" aria-pressed={selected === row.index} onClick={() => onSelect(row.index)} className={cn("grid w-full grid-cols-[112px_minmax(0,1fr)_132px] items-center gap-x-4 rounded-[10px] px-3 py-1 text-left outline-none transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring", row.index > 0 && "border-t border-border", selected === row.index && "bg-accent hover:bg-accent")}>
+        return <button key={row.index} type="button" data-indicator-key={String(row.index)} data-indicator-active={selected === row.index || undefined} aria-pressed={selected === row.index} onClick={() => onSelect(row.index)} className={cn("relative z-10 grid w-full grid-cols-[112px_minmax(0,1fr)_132px] items-center gap-x-4 rounded-[10px] px-3 py-1 text-left outline-none transition-colors [--ind-bg:var(--accent)] hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring", row.index > 0 && "border-t border-border", selected === row.index && "hover:bg-transparent")}>
           <span className={cn("t-label !text-[15px] !font-semibold", off && "text-text-secondary")}>{dayNames[row.index]}<small className="t-caption mt-0.5 block !font-normal text-text-secondary">{sub}</small></span>
           <span className="relative h-14">
             <span aria-hidden="true" className="absolute inset-0 opacity-70" style={{ backgroundImage: `repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px calc(100% / ${span / 180}))` }} />
