@@ -17,7 +17,7 @@ function MendMark() {
   return <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">M</span>;
 }
 
-export function AskMend({ open, onOpenChange, instant = false }: { open: boolean; onOpenChange: (open: boolean) => void; instant?: boolean }) {
+export function AskMend({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const pathname=usePathname();
   const [connected,setConnected]=useState(false);
   const [threads,setThreads]=useState<Thread[]>([]),[threadId,setThreadId]=useState<string>();
@@ -73,7 +73,7 @@ export function AskMend({ open, onOpenChange, instant = false }: { open: boolean
     }catch(e){setError(e instanceof Error?e.message:"Ask Mend could not respond");setMessages(items=>items.filter(item=>item.id!==assistantId));}
     finally{setBusy(false);}
   }
-  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" instant={instant} className="w-full gap-0 border-0 bg-sheet p-0 shadow-overlay sm:max-w-[440px]">
+  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" className="w-full gap-0 border-0 bg-sheet p-0 shadow-overlay sm:max-w-[440px]">
     <SheetHeader className="gap-0.5 px-5 pt-5 pb-4 pr-12"><SheetTitle className="t-heading">Ask Mend</SheetTitle><SheetDescription className="t-caption text-text-secondary">Powered by your ChatGPT account</SheetDescription></SheetHeader>
     <div className="flex items-center gap-2 border-b border-border px-5 pb-3">
       <MendSelect aria-label="Model" value={model} onValueChange={setModel} disabled={!connected||busy} options={models.map(item=>({value:item,label:item}))} placeholder="Choose model" className="h-8 flex-1 rounded-lg px-2.5 text-[13px] data-[size=default]:h-8" />
