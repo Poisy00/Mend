@@ -129,6 +129,17 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
 .mend-fade-list { animation:mend-fade-in 140ms var(--ease-out); }
 .mend-fade-panel { animation:mend-fade-in 120ms var(--ease-out); }
 @keyframes mend-fade-in { from { opacity:.4; } }
+/* A new page enters over 200ms. Played only when the pathname changes. */
+.mend-page-enter { animation:mend-page-in 200ms var(--ease-out); }
+@keyframes mend-page-in { from { opacity:0; translate:0 6px; } }
+/* While a navigation is slow, the current page dims and a 2px iris line runs along the top of the sheet.
+   The 120ms delay is on the way in only, so a quick navigation shows neither. */
+.mend-main { transition:opacity 150ms var(--ease-out); }
+.mend-main[data-pending] { opacity:.6; transition-delay:120ms; }
+.mend-progress { position:absolute; inset:0 0 auto 0; z-index:5; height:2px; overflow:hidden; pointer-events:none; opacity:0; transition:opacity 150ms var(--ease-out); }
+.mend-progress::before { content:""; position:absolute; inset:0; width:40%; background:var(--primary); border-radius:2px; animation:mend-progress 1.1s var(--ease-in-out) infinite; }
+.mend-progress[data-pending] { opacity:1; transition-delay:120ms; }
+@keyframes mend-progress { from { transform:translateX(-100%); } to { transform:translateX(250%); } }
 /* Selection indicator: one element slides and resizes to the active item. Placement without a slide is done inline with transition:none. */
 .mend-indicator { position:absolute; top:0; left:0; z-index:0; pointer-events:none; opacity:0; transition:transform 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out), opacity 150ms var(--ease-out); }
 /* Before the indicator is placed (server render, first paint), the active item draws its own highlight so nothing pops in. */
@@ -139,6 +150,8 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
 @media (prefers-reduced-motion: reduce) {
   .motion-move { transition-property:opacity, background-color, color, box-shadow !important; }
   .mend-pane { translate:none; }
+  @keyframes mend-page-in { from { opacity:0; translate:0 0; } }
+  .mend-progress::before { width:100%; animation:none; }
   .mend-indicator { transition:opacity 150ms var(--ease-out); }
   @keyframes mend-pop-in { from { opacity:0; scale:1; } }
   @keyframes mend-pop-out { to { opacity:0; scale:1; } }
