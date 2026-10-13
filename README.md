@@ -27,30 +27,38 @@ Agent records are scoped to their owner. Customer details, drafts, and history a
 
 ## Run locally
 
-Requires Node.js 22.13 or later.
+Requires Node.js 22.13 or later. Mend is a Next.js app that stores data in Cloudflare D1 through a small bridge Worker (`workers/db-bridge`); locally the bridge runs with `wrangler dev` on a local D1 file, so no Cloudflare account is needed.
 
-1. Run `npm run install:ci`, then `npm run build` to generate the local Worker configuration.
-2. Apply the SQL files in `drizzle/` in numeric order to the local D1 binding. For each file, use the command below with that file's name.
-3. Create an ignored `.dev.vars` with the required values in the table below.
-4. Run `npm run dev`, sign in as the bootstrap administrator, and change the temporary password.
+1. Run `npm install`.
+2. Copy `.env.example` to `.env.local` and fill it in (table below). Use `DB_BRIDGE_URL=http://127.0.0.1:8787` and any random `DB_BRIDGE_TOKEN`.
+3. Copy `workers/db-bridge/.dev.vars.example` to `workers/db-bridge/.dev.vars` and set `DB_BRIDGE_TOKEN` to the same value.
+4. Run `npm run db:migrate:local` to apply the SQL in `drizzle/` to the local D1 database.
+5. Run `npm run dev:db` (bridge on port 8787) and, in another terminal, `npm run dev` (app on http://localhost:3000).
+6. Sign in as the bootstrap administrator and change the temporary password.
 
-```sh
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_example.sql
-```
-
-| Secret | Purpose |
+| Variable | Purpose |
 | --- | --- |
+| `DB_BRIDGE_URL` / `DB_BRIDGE_TOKEN` | Address and bearer token of the D1 bridge Worker. |
 | `AUTH_PEPPER` | Password hashing secret, independent of the encryption key. |
 | `DATA_ENCRYPTION_KEY` | Stable AES-GCM key material for customer records, drafts, and history. |
 | `AI_CREDENTIALS_ENCRYPTION_KEY` | Separate stable 32-byte base64url AES-GCM key for ChatGPT OAuth credentials, authorization state, and Ask Mend messages. Generate with `openssl rand -base64 32 | tr '+/' '-_' | tr -d '='`. |
 | `BOOTSTRAP_ADMIN_USERNAME` | Initial administrator username. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | Initial temporary password, at least 12 characters. |
 
-The Site binds D1 as `DB` through `.openai/hosting.json`. Optional owner recovery uses a separate `OWNER_RECOVERY_TOKEN` of at least 32 characters. Agent accounts are created by the administrator in Mend; `BOOTSTRAP_USER_*` is unused.
+Optional owner recovery uses a separate `OWNER_RECOVERY_TOKEN` of at least 32 characters. Agent accounts are created by the administrator in Mend; `BOOTSTRAP_USER_*` is unused.
+
+## Deploy
+
+The app runs on Vercel (Node runtime, region `fra1`, see `vercel.json`); the database is a Cloudflare D1 database `mend` behind the `mend-db` Worker.
+
+1. Sign in yourself with `npx wrangler login` and `vercel login`.
+2. Create the database and bridge as described in `workers/db-bridge/README.md` (`wrangler d1 create mend --location weur`, `npm run db:migrate:remote`, set the `DB_BRIDGE_TOKEN` secret, `wrangler deploy`).
+3. In the Vercel project, add every variable from `.env.example` (Production and Preview), with `DB_BRIDGE_URL` set to the Worker's `*.workers.dev` URL.
+4. Run `vercel deploy --prod`, sign in with the bootstrap administrator, and change the temporary password.
 
 ### Ask Mend setup
 
-Apply `drizzle/0004_odd_mattie_franklin.sql` to the existing D1 database and set `AI_CREDENTIALS_ENCRYPTION_KEY` as a deployment secret before using Ask Mend. The key must remain stable: changing it makes existing credentials and conversations unreadable. Each agent connects in **Settings → Ask Mend · ChatGPT**, opens the authorization page, enters the displayed device code, and returns to the drawer. No extension, API key entry, Mend backend proxy, or redirect callback is needed. The Worker makes the authenticated Codex request using that agent's connection; Mend still handles its own session, encrypted storage, and scoped tools. A live authorization and model response require a ChatGPT account and must be checked in the deployed environment.
+Make sure all migrations are applied to D1 (`npm run db:migrate:local` or `db:migrate:remote`) and set `AI_CREDENTIALS_ENCRYPTION_KEY` as a deployment secret before using Ask Mend. The key must remain stable: changing it makes existing credentials and conversations unreadable. Each agent connects in **Settings → Ask Mend · ChatGPT**, opens the authorization page, enters the displayed device code, and returns to the drawer. No extension, API key entry, Mend backend proxy, or redirect callback is needed. The server makes the authenticated Codex request using that agent's connection; Mend still handles its own session, encrypted storage, and scoped tools. A live authorization and model response require a ChatGPT account and must be checked in the deployed environment.
 
 ## Quality checks
 
