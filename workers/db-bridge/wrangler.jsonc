@@ -6,8 +6,7 @@
     {
       "binding": "DB",
       "database_name": "mend",
-      // Replace with the id printed by `wrangler d1 create mend --location weur` at deploy time.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "afc2cc48-874f-4bbe-89ff-d54f91c6d021",
       "migrations_dir": "../../drizzle"
     }
   ]
