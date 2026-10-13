@@ -174,3 +174,17 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
   .mend-check, .mend-check path { transition:background-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out), opacity 120ms var(--ease-out); }
   .mend-check[data-state="met"][data-animate="true"], .mend-check[data-state="met"][data-animate="true"] path { animation:none; }
 }
+
+/* Sign-in logo flight: a same-origin document navigation (sign in, sign out) morphs the wordmark between the login card and the shell.
+   Exactly one visible element carries the name: the desktop sidebar logo from 768px up, the mobile top-bar logo below it.
+   Client-side navigation is unaffected. Chromium 126+; other browsers simply navigate. */
+@view-transition { navigation: auto; }
+@media (min-width: 768px) { .mend-flight-desktop { view-transition-name: mend-wordmark; } }
+@media (max-width: 767px) { .mend-flight-mobile { view-transition-name: mend-wordmark; } }
+::view-transition-group(mend-wordmark) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+::view-transition-old(mend-wordmark), ::view-transition-new(mend-wordmark) { height: 100%; object-fit: contain; animation-duration: 620ms; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+::view-transition-old(root) { animation: 220ms var(--ease-out) both mend-vt-out; }
+::view-transition-new(root) { animation: 320ms var(--ease-out) 80ms both mend-vt-in; }
+@keyframes mend-vt-out { to { opacity:0; } }
+@keyframes mend-vt-in { from { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
