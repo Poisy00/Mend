@@ -10,7 +10,7 @@ import { displayName } from "@/lib/display/format";
 import { cn } from "@/lib/utils";
 import { snoozeOptions } from "./actions";
 
-export type LineNode = "overdue" | "now" | "soon" | "waiting" | "done";
+export type LineNode = "overdue" | "now" | "soon" | "waiting" | "done" | "iris";
 
 const nodeTone: Record<LineNode, string> = {
   overdue: "bg-status-overdue shadow-[0_0_0_3px_var(--status-overdue-tint)]",
@@ -18,6 +18,7 @@ const nodeTone: Record<LineNode, string> = {
   soon: "bg-sheet shadow-[0_0_0_2px_var(--primary)]",
   waiting: "bg-sheet shadow-[0_0_0_2px_var(--text-muted)]",
   done: "bg-status-done shadow-[0_0_0_3px_var(--status-done-tint)]",
+  iris: "bg-primary shadow-[0_0_0_3px_var(--accent)]",
 };
 const actionButton = "relative bg-sheet shadow-chip before:absolute before:-inset-1 hover-fine:bg-surface-hover";
 const spine = "relative self-stretch grid place-items-center before:absolute before:left-1/2 before:w-0.5 before:-translate-x-px before:bg-border";

@@ -6,10 +6,14 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { WorkRow } from "@/components/ui/work-row";
-import { Eyebrow, PageHeader } from "@/components/ui/page-header";
-import { Segmented } from "@/components/ui/segmented";
+import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/ui/status";
+import { CopyButton } from "@/components/ui/copy-button";
+import { FilterTabs } from "@/components/focus-line/filter-tabs";
+import { LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
+import { cairoDay, cairoFormat } from "@/components/focus-line/timeline";
+import { historyLabel } from "@/components/focus-line/actions";
+import { relativeTime } from "@/lib/display/relative";
 import { caseDisplay } from "@/lib/follow-ups/display";
 import { displayName } from "@/lib/display/format";
 import { cn } from "@/lib/utils";
@@ -20,6 +24,21 @@ import { useMobileDetail } from "@/components/use-mobile-detail";
 type Page = { items: CaseRecord[]; nextCursor: string | null };
 type History = { id: string; type: string; createdAt: string };
 const statuses = ["All", "Open", "Follow-up scheduled", "Handoff prepared", "Closed"] as const;
+const statusTabs = statuses.map(value => ({ key: value, label: value }));
+const caseNode: Record<CaseStatus, LineNode> = { Open: "soon", "Follow-up scheduled": "now", "Handoff prepared": "iris", Closed: "done" };
+const parseStamp = (value: string) => Date.parse(/^\d{4}-\d\d-\d\d \d/.test(value) ? value.replace(" ", "T") + "Z" : value);
+/** Time for today, then "Yesterday", then "Oct 9" (with the year when it is not this year). */
+function updatedGutter(value: string, nowMs: number) {
+  const ms = parseStamp(value);
+  if (!Number.isFinite(ms)) return "";
+  const diff = cairoDay(nowMs) - cairoDay(ms);
+  if (diff === 0) return cairoFormat({ hour: "numeric", minute: "2-digit" }, ms);
+  if (diff === 1) return "Yesterday";
+  const sameYear = cairoFormat({ year: "numeric" }, ms) === cairoFormat({ year: "numeric" }, nowMs);
+  return cairoFormat({ month: "short", day: "numeric", ...(sameYear ? {} : { year: "numeric" }) }, ms);
+}
+const longDate = (value: string) => { const ms = parseStamp(value); return Number.isFinite(ms) ? cairoFormat({ dateStyle: "medium", timeStyle: "short" }, ms) : value; };
+const heading = "t-meta mb-2.5 !font-semibold text-text-secondary";
 
 export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page; initialSelected?: CaseRecord | null }) {
   const [items, setItems] = useState<CaseRecord[]>(() => initialSelected && !initialPage.items.some(item => item.id === initialSelected.id) ? [initialSelected, ...initialPage.items] : initialPage.items);
@@ -36,7 +55,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
   const isMobile = useMobileDetail();
   const firstSearch = useRef(true);
 
-  useEffect(() => { if (!initialSelected) return; const timer = window.setTimeout(() => { void select(initialSelected, false); document.getElementById(`case-${initialSelected.id}`)?.scrollIntoView({ block: "nearest" }); }, 0); return () => window.clearTimeout(timer); // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!initialSelected) return; const timer = window.setTimeout(() => { void select(initialSelected, false); document.querySelector(`[data-row-id="${CSS.escape(initialSelected.id)}"]`)?.scrollIntoView({ block: "nearest" }); }, 0); return () => window.clearTimeout(timer); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => { const timer = window.setTimeout(() => setQuery(search.trim()), 250); return () => window.clearTimeout(timer); }, [search]);
   useEffect(() => { const key = (event: KeyboardEvent) => { if (event.key !== "Escape") return; const target = event.target as HTMLElement | null; if (target?.closest("input,textarea,[role=dialog]")) return; setSelected(null); }; window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key); }, []);
@@ -107,29 +126,47 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
     await refresh();
   }
 
+  const now = Date.now();
   const selectedDisplay = selected ? caseDisplay(selected) : null;
-  const detail = selected && selectedDisplay ? <div className="py-5">
-    <p className="t-id text-text-secondary">{selected.humanId}</p>
-    <h2 className="t-heading mt-2">{displayName(selected.customerName || selected.accountNumber)}</h2>
-    <p className="mt-2 flex flex-wrap items-center gap-2"><StatusPill tone={selectedDisplay.tone} icon={selectedDisplay.icon}>{selectedDisplay.label}</StatusPill><span className="text-sm text-text-secondary">· {selected.category} · {selected.priority}</span></p>
-    <p className="mt-7 whitespace-pre-wrap border-y border-border py-5 text-sm leading-6">{selected.summary}</p>
-    <div className="mt-6 flex flex-wrap gap-2">{selected.status === "Closed" ? <Button variant="secondary" onClick={() => void setStatus("Open")}>Reopen</Button> : <Button onClick={() => void setStatus("Closed")}>Close Case</Button>}<Button variant="destructive" onClick={() => void removeCase()}>Delete Case</Button></div>
-    <Eyebrow className="mt-9">History</Eyebrow>
-    <div className="mt-3 divide-y divide-border">{historyLoading ? <div className="space-y-3 py-3"><WorkRowSkeleton count={2} /></div> : history.map(entry => { const label = entry.type.replaceAll("_", " "); return <div key={entry.id} className="py-3 text-sm"><p>{label.charAt(0).toUpperCase() + label.slice(1)}</p><p className="t-id text-text-muted">{entry.createdAt}</p></div>; })}</div>
-  </div> : null;
+  const renderDetail = (embedded: boolean) => selected && selectedDisplay ? <aside aria-label="Selected Case" className={cn("relative", !embedded && "mend-pane max-h-[calc(100dvh-3rem)] overflow-auto overscroll-contain rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border),0_12px_32px_-20px_rgb(0_0_0/.18)]")}>
+    {!embedded && <Button variant="ghost" size="icon-sm" onClick={() => setSelected(null)} aria-label="Close details" className="absolute top-3 right-3"><X /></Button>}
+    <div className="flex flex-wrap items-center gap-2">
+      <StatusPill tone={selectedDisplay.tone} icon={selectedDisplay.icon}>{selectedDisplay.label}</StatusPill>
+      {selected.priority === "High" && selected.status !== "Closed" && <span className="t-caption rounded-full bg-status-overdue-tint px-2 py-0.5 !font-semibold text-status-overdue">High priority</span>}
+    </div>
+    <h2 className="mt-3 text-[24px] leading-[1.2] font-semibold tracking-[-0.02em]">{displayName(selected.customerName || selected.accountNumber)}</h2>
+    <p className="t-body-lg mt-1.5 whitespace-pre-wrap text-text-secondary">{selected.summary}</p>
+    <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-3.5">
+      <div><dt className="t-caption text-text-secondary">Case</dt><dd className="t-label"><span className="flex items-center gap-1"><span className="num">{selected.humanId}</span><CopyButton value={selected.humanId} label="Case number" /></span></dd></div>
+      <div><dt className="t-caption text-text-secondary">Account</dt><dd className="t-label">{selected.accountNumber ? <span className="flex items-center gap-1"><span className="num">{selected.accountNumber}</span><CopyButton value={selected.accountNumber} label="account number" /></span> : "Not saved"}</dd></div>
+      <div><dt className="t-caption text-text-secondary">Category</dt><dd className="t-label">{selected.category}</dd></div>
+      <div><dt className="t-caption text-text-secondary">Priority</dt><dd className="t-label">{selected.priority}</dd></div>
+      <div className="col-span-2"><dt className="t-caption text-text-secondary">Last updated</dt><dd className="t-label">{longDate(selected.updatedAt)}</dd></div>
+    </dl>
+    <div className="mt-7 flex flex-wrap items-center gap-2 border-t border-border pt-5">{selected.status === "Closed" ? <Button variant="outline" onClick={() => void setStatus("Open")}>Reopen</Button> : <Button onClick={() => void setStatus("Closed")}>Close Case</Button>}<Button variant="destructive" className="ml-auto" onClick={() => void removeCase()}>Delete Case</Button></div>
+    <section className="mt-6" aria-label="Case history">
+      <h3 className={heading}>History</h3>
+      {historyLoading ? <div className="space-y-3 py-1"><WorkRowSkeleton count={2} /></div>
+        : history.length ? <ul>{history.map(entry => <li key={entry.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="whitespace-nowrap text-text-muted">{relativeTime(entry.createdAt, now)}</span><span>{historyLabel(entry.type)}</span></li>)}</ul>
+        : <p className="t-meta text-text-secondary">No history yet.</p>}
+    </section>
+  </aside> : null;
 
   return <div>
     <PageHeader eyebrow="Saved work" title="Cases" description="Only the Cases you choose to save appear here." />
-    <div className="mt-8 border-b border-border pb-5"><Segmented label="Filter Cases" options={statuses.map(v => ({ value: v, label: v }))} value={filter} onChange={value => { if (value !== filter) { setLoading(true); setFilter(value); } }} /></div>
-    <div className={cn("grid", selected && "min-[1100px]:grid-cols-[minmax(0,1fr)_420px]")}>
-      <section className={cn("min-h-[500px] min-w-0", !selected && "max-w-[880px]", selected && "min-[1100px]:border-r min-[1100px]:border-border min-[1100px]:pr-7")}>
-        <div className="flex items-center gap-3 py-5"><div className="relative flex-1"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted"/><Input value={search} onChange={event => { setSearch(event.target.value); setLoading(event.target.value.trim() !== query); }} placeholder="Search your Cases" aria-label="Search your Cases" className="h-9 rounded-[8px] border-0 bg-sheet pl-9 shadow-[inset_0_0_0_1px_var(--border)] focus-visible:ring-0 focus-visible:shadow-[inset_0_0_0_1px_var(--ring)]"/></div><span className="t-id text-text-muted">{items.length}{nextCursor ? "+" : ""}</span></div>
-        {loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <div className="-mx-3">{items.map(item => { const d = caseDisplay(item); return <WorkRow key={item.id} title={item.customerName || item.accountNumber} subtitle={item.summary} id={item.humanId} rowId={`case-${item.id}`} meta={item.category + " · " + item.priority + " priority"} tone={d.tone} statusLabel={d.label} statusIcon={d.icon} left={d.tone === "closed" ? 0 : 1} selected={selected?.id === item.id} onClick={() => void select(item)} />; })}</div>}
+    <div className={cn("mt-8 grid items-start gap-10", selected && "min-[1100px]:grid-cols-[minmax(0,1fr)_400px]")}>
+      <section className="min-h-[500px] min-w-0" aria-label="Cases">
+        <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <div className="relative min-w-[min(100%,220px)] flex-[0_1_300px]"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted"/><Input value={search} onChange={event => { setSearch(event.target.value); setLoading(event.target.value.trim() !== query); }} placeholder="Search your Cases" aria-label="Search your Cases" className="h-10 rounded-[10px] border-0 bg-secondary pl-9 shadow-none focus-visible:ring-0 focus-visible:shadow-[inset_0_0_0_1px_var(--ring)]"/></div>
+          <FilterTabs label="Filter Cases" tabs={statusTabs} value={filter} onChange={value => { if (value !== filter) { setLoading(true); setFilter(value); } }} />
+          <p className="t-meta ml-auto text-text-secondary"><span className="num">{items.length}{nextCursor ? "+" : ""}</span> {items.length === 1 && !nextCursor ? "Case" : "Cases"}</p>
+        </div>
+        {loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <ul>{items.map((item, index) => { const d = caseDisplay(item); return <LineRow key={item.id} id={item.id} ends={spineEnds(index === 0, index === items.length - 1)} gutter={updatedGutter(item.updatedAt, now)} node={caseNode[item.status]} name={item.customerName || item.accountNumber} ident={item.humanId} subtitle={item.summary} label={d.label} quiet={item.status === "Closed"} selected={selected?.id === item.id} onSelect={() => void select(item)} mended={false} leaving={false} onStitchEnd={() => {}} />; })}</ul>}
         {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="secondary" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more Cases"}</Button>}
       </section>
-      {selected && <aside className="mend-pane hidden min-[1100px]:block min-[1100px]:pl-7"><div className="flex justify-end pt-3"><Button variant="ghost" size="sm" onClick={() => setSelected(null)} aria-label="Close details"><X /></Button></div>{detail}</aside>}
+      {selected && <div className="sticky top-6 hidden min-[1100px]:block">{renderDetail(false)}</div>}
     </div>
-    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Case details</SheetTitle><SheetDescription>Saved work and history</SheetDescription></SheetHeader>{detail}</SheetContent></Sheet>
+    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Case details</SheetTitle><SheetDescription>Saved work and history</SheetDescription></SheetHeader>{renderDetail(true)}</SheetContent></Sheet>
   </div>;
 }
