@@ -50,3 +50,7 @@ next-env.d.ts
 # bridge worker local secrets
 /workers/db-bridge/.dev.vars
 !.env.example
+
+# local secrets and bridge state
+/.secrets/
+/workers/db-bridge/.wrangler/
