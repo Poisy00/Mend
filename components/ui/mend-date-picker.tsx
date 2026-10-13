@@ -34,7 +34,7 @@ function display(value: string, mode: Mode) {
   const [year, month, day] = datePart(value).split("-").map(Number);
   if (!year || !month || !day) return value;
   const label = new Date(year, month - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  return mode === "datetime" ? `${label} · ${timePart(value)}` : label;
+  return mode === "datetime" ? `${label}, ${timePart(value)}` : label;
 }
 
 export function MendDatePicker({ mode = "date", value, defaultValue = "", onValueChange, name, id, required, disabled, className, treatment = "boxed", "aria-label": ariaLabel }: Props) {
