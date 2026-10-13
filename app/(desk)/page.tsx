@@ -2,12 +2,11 @@ import { Plus } from "lucide-react";
 import { MendLink as Link } from "@/components/mend-link";
 import { TodayQueue } from "@/components/today/queue";
 import { Button } from "@/components/ui/button";
+import { cairoDateLabel, focusHeadline } from "@/components/focus-line/headline";
 import { Eyebrow } from "@/components/ui/page-header";
 import { classifyFollowUp, rankFollowUp } from "@/lib/follow-ups/rules";
 import { requirePageSession } from "@/lib/server/page-auth";
 import { listFollowUps } from "@/lib/server/follow-ups";
-
-const numberWords = ["One", "Two", "Three", "Four", "Five"];
 
 export default async function TodayPage() {
   const session = await requirePageSession();
@@ -16,14 +15,8 @@ export default async function TodayPage() {
   const open = followUps.items.filter(item => classifyFollowUp(item, nowMs) !== "completed").sort((a, b) => rankFollowUp(b, nowMs) - rankFollowUp(a, nowMs));
   const count = (bucket: string) => open.filter(item => classifyFollowUp(item, nowMs) === bucket).length;
   const overdue = count("overdue"), due = count("now"), soon = count("soon");
-  const date = new Intl.DateTimeFormat("en-US", { timeZone: "Africa/Cairo", weekday: "long", month: "long", day: "numeric" }).formatToParts(nowMs);
-  const part = (type: string) => date.find(entry => entry.type === type)?.value ?? "";
-  const eyebrow = `${part("weekday")}, ${part("month")} ${part("day")}`;
-  const headline = overdue
-    ? `${numberWords[overdue - 1] ?? overdue} callback${overdue === 1 ? " is" : "s are"} late.`
-    : open.length ? "You're on time." : "Queue clear.";
-  const parts = [due && `${due} due now`, soon && `${soon} due within the hour`].filter(Boolean).join(", ");
-  const description = parts ? `${parts[0].toUpperCase()}${parts.slice(1)}.` : "";
+  const eyebrow = cairoDateLabel(nowMs);
+  const { headline, description } = focusHeadline({ overdue, due, soon, open: open.length });
   return <>
     <div className="border-b border-border pb-8">
       <div className="flex flex-wrap items-end justify-between gap-5">

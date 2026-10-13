@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlarmClock, Check, PanelRightOpen } from "lucide-react";
+import { clockTime, snoozeOptions } from "@/components/focus-line/actions";
 import { MendLink as Link } from "@/components/mend-link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -16,9 +17,6 @@ import type { FollowUp } from "@/lib/follow-ups/types";
 import { cn } from "@/lib/utils";
 
 type HistoryEvent = { id: string; type: string; createdAt: string };
-
-export const snoozeOptions = [{ label: "30 minutes", minutes: 30 }, { label: "1 hour", minutes: 60 }, { label: "2 hours", minutes: 120 }];
-export const clockTime = (ms: number) => new Date(ms).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
 export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoozeOpenChange, mended }: {
   item: FollowUp; now: number; onResolve: () => void; onSnooze: (minutes: number) => void;
