@@ -9,5 +9,5 @@ export default async function FollowUpsPage({ searchParams }: { searchParams: Pr
     listFollowUps(session.id, { limit: 50 }),
     selected && /^[\w-]{1,64}$/.test(selected) ? getFollowUp(session.id, selected) : null,
   ]);
-  return <FollowUpQueue initialPage={initialPage} initialSelected={initialSelected} />;
+  return <FollowUpQueue initialPage={initialPage} initialSelected={initialSelected} now={new Date().getTime()} />;
 }
