@@ -156,8 +156,8 @@ return (
 }
 function Field({label,children,className=""}:{label:string;children:React.ReactNode;className?:string}){return <label className={`group block space-y-1.5 ${className}`}><span className="text-xs font-medium text-text-secondary transition-colors duration-[120ms] group-focus-within:text-primary">{label}</span>{children}</label>;}
 
-/** Shows the email at its natural width, scaled down to fit like an email-client preview. Below 0.6 it stops scaling and wraps instead. */
-const MIN_EMAIL_SCALE=0.6;
+/** Shows the email at its natural width, scaled down to fit like an email-client preview. Below 0.85 it stops scaling and wraps instead. */
+const MIN_EMAIL_SCALE=0.85;
 type EmailFit={scale:number;width:number;height:number;wrap:boolean};
 function ScaledEmail({html}:{html:string}){
   const outer=useRef<HTMLDivElement>(null),inner=useRef<HTMLDivElement>(null),natural=useRef(0);
