@@ -64,7 +64,7 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
 
   const dateLabel = (date: string) => new Intl.DateTimeFormat("en-US", { timeZone: "UTC", month: "short", day: "numeric" }).format(Date.parse(`${date}T12:00:00Z`));
 
-  return <div className="mt-9">
+  return <div className="mt-8 rounded-[14px] bg-sheet p-3 shadow-[0_0_0_1px_var(--border)]">
     <div className="grid grid-cols-[112px_minmax(0,1fr)_132px] gap-x-4 px-3 pb-2" aria-hidden="true">
       <span />
       <div className="relative h-4">{labels.map((t, i) => <span key={t} className={cn("t-id absolute whitespace-nowrap text-[11px] text-text-muted", i === 0 ? "translate-x-0" : i === labels.length - 1 ? "-translate-x-full" : "-translate-x-1/2")} style={{ left: pct(t) }}>{hourLabel(t)}</span>)}</div>
@@ -79,19 +79,19 @@ export function ShiftTimeline({ week, exceptions, selected, onSelect, now }: { w
         const barStyle = row.exception
           ? { left: pct(row.s), width: `${((row.e - row.s) / span) * 100}%`, backgroundImage: "repeating-linear-gradient(135deg, var(--accent) 0 4px, transparent 4px 8px)" }
           : { left: pct(row.s), width: `${((row.e - row.s) / span) * 100}%` };
-        return <button key={row.index} type="button" aria-pressed={selected === row.index} onClick={() => onSelect(row.index)} className={cn("grid w-full grid-cols-[112px_minmax(0,1fr)_132px] items-center gap-x-4 rounded-lg px-3 py-1 text-left outline-none transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring", row.index > 0 && "border-t border-border", selected === row.index && "bg-accent hover:bg-accent")}>
-          <span className={cn("text-[15px] font-semibold", off && "text-text-secondary")}>{dayNames[row.index]}<small className="mt-0.5 block text-xs font-normal text-text-secondary">{sub}</small></span>
+        return <button key={row.index} type="button" aria-pressed={selected === row.index} onClick={() => onSelect(row.index)} className={cn("grid w-full grid-cols-[112px_minmax(0,1fr)_132px] items-center gap-x-4 rounded-[10px] px-3 py-1 text-left outline-none transition-colors hover:bg-surface-hover focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring", row.index > 0 && "border-t border-border", selected === row.index && "bg-accent hover:bg-accent")}>
+          <span className={cn("t-label !text-[15px] !font-semibold", off && "text-text-secondary")}>{dayNames[row.index]}<small className="t-caption mt-0.5 block !font-normal text-text-secondary">{sub}</small></span>
           <span className="relative h-14">
             <span aria-hidden="true" className="absolute inset-0 opacity-70" style={{ backgroundImage: `repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px calc(100% / ${span / 180}))` }} />
             {!off && <>
-              <span className={cn("absolute top-4 h-6 rounded-md", row.exception ? "bg-transparent shadow-[inset_0_0_0_1.5px_var(--primary)]" : "bg-primary shadow-press")} style={barStyle} />
-              {row.pauses.map((pause, i) => <span key={i} className="absolute top-4 h-6" style={{ left: pct(pause.a), width: `${((pause.b - pause.a) / span) * 100}%`, backgroundImage: "repeating-linear-gradient(135deg, var(--accent) 0 3px, var(--primary-hover) 3px 5px)" }} />)}
+              <span className={cn("absolute top-4 h-6 rounded-md", row.exception ? "bg-transparent shadow-[inset_0_0_0_1.5px_var(--primary)]" : "bg-accent shadow-[inset_0_0_0_1.5px_var(--primary)]")} style={barStyle} />
+              {row.pauses.map((pause, i) => <span key={i} className="absolute top-4 h-6 bg-secondary shadow-[inset_0_0_0_1px_var(--control-edge)]" style={{ left: pct(pause.a), width: `${((pause.b - pause.a) / span) * 100}%` }} />)}
               {marker !== null && marker >= axisStart && marker <= axisStart + span && <span className="absolute top-1.5 bottom-1.5 w-0.5 rounded-full bg-status-overdue before:absolute before:-top-1 before:left-1/2 before:size-2 before:-translate-x-1/2 before:rounded-full before:bg-status-overdue" style={{ left: pct(marker) }} />}
             </>}
           </span>
           <span className="text-right">
-            <span className="font-mono text-[13px] font-medium tabular-nums">{off ? "—" : `${clock(row.plan.start)}–${clock(row.plan.end)}`}</span>
-            <small className="mt-0.5 block text-xs text-text-secondary">{off ? "Off" : isActive && marker !== null ? `On shift · ${Math.floor((row.e - marker) / 60)}h ${(row.e - marker) % 60}m left` : `${length(row.e - row.s)} · ${row.plan.breaks.length} break${row.plan.breaks.length === 1 ? "" : "s"}${row.plan.lunch ? " · lunch" : ""}`}</small>
+            <span className="t-meta num !font-medium">{off ? "—" : `${clock(row.plan.start)}–${clock(row.plan.end)}`}</span>
+            <small className="t-caption mt-0.5 block !font-normal text-text-secondary">{off ? "Off" : isActive && marker !== null ? `On shift, ${Math.floor((row.e - marker) / 60)}h ${(row.e - marker) % 60}m left` : `${length(row.e - row.s)}, ${row.plan.breaks.length} break${row.plan.breaks.length === 1 ? "" : "s"}${row.plan.lunch ? ", lunch" : ""}`}</small>
           </span>
         </button>;
       })}

@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Eyebrow, PageHeader } from "@/components/ui/page-header";
+import { PageHeader } from "@/components/ui/page-header";
+import { FilterTabs } from "@/components/focus-line/filter-tabs";
 import { ShiftTimeline, cairoWeekdayIndex } from "./shift-timeline";
 import { applyDayToWeek, emptyWeek, validateWeeklyPattern, type DayPlan, type Pause, type WeekPattern } from "@/lib/schedule/rules";
 
@@ -58,11 +59,14 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
   }
   const index = selectedDay;
   const day = week[index];
-  const timeInput = "h-9 w-[132px] font-mono";
+  const timeInput = "h-9 w-[132px] num";
+  const sectionLabel = "t-meta !font-semibold text-text-secondary";
+  const dayTabs = days.map((name, i) => ({ key: String(i), label: name.slice(0, 3) }));
   return <div className="max-w-5xl">
     <PageHeader eyebrow="Your work week" title="Schedule" description="Set a repeating Sunday–Saturday pattern in Cairo time. It will carry into future weeks until you change it." actions={<Button onClick={saveWeek} disabled={pending}>{pending ? "Saving…" : "Save work week"}</Button>} />
     <ShiftTimeline week={week} exceptions={exceptions} selected={selectedDay} onSelect={setSelectedDay} now={now} />
-    <section className="mt-8 rounded-xl border border-border bg-surface p-6" aria-label={days[index] + " schedule"}>
+    <section className="mt-6 rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border)]" aria-label={days[index] + " schedule"}>
+      <FilterTabs label="Choose a day" tabs={dayTabs} value={String(index)} onChange={key => setSelectedDay(Number(key))} className="mb-5" />
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <h2 className="t-heading min-w-[7rem]">{days[index]}</h2>
         <label className="flex items-center gap-2 text-sm font-medium"><Checkbox checked={!day.off} onCheckedChange={v => patchDay(index, { off: v !== true, breaks: [], lunch: null })} />Working</label>
@@ -73,7 +77,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
       </div>
       {!day.off && <>
         <div className="mt-5 space-y-3">
-          <Eyebrow>Breaks and lunch</Eyebrow>
+          <p className={sectionLabel}>Breaks and lunch</p>
           {day.breaks.map((pause, pauseIndex) => <div key={pauseIndex} className="flex flex-wrap items-center gap-2"><span className="w-20 text-sm">Break {pauseIndex + 1}</span><Input aria-label={days[index] + " break start"} type="time" className="w-[145px]" value={pause.start} onChange={event => patchDay(index, updatePause(day, "break", pauseIndex, "start", event.target.value))} /><span>to</span><Input aria-label={days[index] + " break end"} type="time" className="w-[145px]" value={pause.end} onChange={event => patchDay(index, updatePause(day, "break", pauseIndex, "end", event.target.value))} /><Button variant="ghost" size="sm" onClick={() => patchDay(index, { breaks: day.breaks.filter((_, i) => i !== pauseIndex) })}>Remove</Button></div>)}
           {day.breaks.length < 2 && <Button variant="secondary" size="sm" onClick={() => patchDay(index, { breaks: [...day.breaks, { start: "11:00", end: "11:15" }] })}><Plus />Add 15-minute break</Button>}
           {day.lunch ? <div className="flex flex-wrap items-center gap-2"><span className="w-20 text-sm">Lunch</span><Input aria-label={days[index] + " lunch start"} type="time" className="w-[145px]" value={day.lunch.start} onChange={event => patchDay(index, updatePause(day, "lunch", 0, "start", event.target.value))} /><span>to</span><Input aria-label={days[index] + " lunch end"} type="time" className="w-[145px]" value={day.lunch.end} onChange={event => patchDay(index, updatePause(day, "lunch", 0, "end", event.target.value))} /><Button variant="ghost" size="sm" onClick={() => patchDay(index, { lunch: null })}>Remove</Button></div> : <Button variant="secondary" size="sm" onClick={() => patchDay(index, { lunch: { start: "13:00", end: "13:30" } })}><Plus />Add 30-minute lunch</Button>}
@@ -81,8 +85,8 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
         <div className="mt-6 flex justify-between border-t border-border pt-5"><Button variant="ghost" size="sm" onClick={() => { const copied=applyDayToWeek(day);const result=validateWeeklyPattern(copied);if(!result.valid){toast.error(result.errors[0]);return;}setWeek(copied);toast.success(`${days[index]} copied to all seven days. Save the work week to keep it.`); }}>Apply to all days</Button></div>
       </>}
     </section>
-    <section className="mt-12 border-t border-border pt-8">
-      <Eyebrow>Exceptions</Eyebrow>
+    <section className="mt-10 border-t border-border pt-8">
+      <p className={sectionLabel}>Exceptions</p>
       <h2 className="t-heading mt-1">One-day exception</h2>
       <p className="mt-2 text-sm text-text-secondary">Override the repeating pattern for one Cairo calendar date.</p>
       <div className="mt-5 flex flex-wrap items-end gap-4">
@@ -91,7 +95,7 @@ export function WeeklyGrid({ initialSchedule }: { initialSchedule: InitialSchedu
         {!exceptionPlan.off && <><label className="space-y-2"><span className="block text-sm font-medium">Start</span><Input type="time" className={timeInput} value={exceptionPlan.start} onChange={event => setExceptionPlan(current => ({ ...current, start: event.target.value }))} /></label><label className="space-y-2"><span className="block text-sm font-medium">End</span><Input type="time" className={timeInput} value={exceptionPlan.end} onChange={event => setExceptionPlan(current => ({ ...current, end: event.target.value }))} /></label></>}
         <Button variant="secondary" onClick={saveException}>Save exception</Button>
       </div>
-      {exceptions.length > 0 && <div className="mt-6 divide-y divide-border border-y border-border">{exceptions.map(item => <div key={item.date} className="flex justify-between py-3"><span className="t-id">{item.date}</span><span className="font-mono text-sm text-text-secondary">{item.plan.off ? "Day off" : item.plan.start + "–" + item.plan.end}</span></div>)}</div>}
+      {exceptions.length > 0 && <div className="mt-6 divide-y divide-border border-y border-border">{exceptions.map(item => <div key={item.date} className="flex justify-between py-3"><span className="t-id">{item.date}</span><span className="t-meta num text-text-secondary">{item.plan.off ? "Day off" : item.plan.start + "–" + item.plan.end}</span></div>)}</div>}
     </section>
   </div>;
 }
