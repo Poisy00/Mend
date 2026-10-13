@@ -87,7 +87,7 @@ function AgentCard({ user, schedule, onNavigate }: { user: ShellUser; schedule: 
         <span aria-hidden="true" className="t-id grid size-7 shrink-0 place-items-center rounded-full bg-sheet !text-[11px] text-text-secondary shadow-chip">{initialsOf(user.displayName)}</span>
         <span className="min-w-0 flex-1">
           <span className="t-label block truncate">{user.displayName}</span>
-          <span className="t-caption num flex items-center gap-1.5 text-text-secondary"><span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", dot)} /><span className="truncate">{summary.line}</span></span>
+          <span className="t-caption flex items-center gap-1.5 text-text-secondary"><span aria-hidden="true" className={cn("size-1.5 shrink-0 rounded-full", dot)} /><span className="truncate">{summary.line}</span></span>
         </span>
         <ChevronsUpDown aria-hidden="true" className="size-3.5 shrink-0 text-text-muted" />
       </button>

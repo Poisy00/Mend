@@ -60,7 +60,7 @@ export function LineRow({ id, ends, gutter, node, name, ident, tag, subtitle, la
       </span>
       <span className="t-meta block truncate text-text-secondary">{subtitle}</span>
     </span>
-    <span className={cn("t-meta num whitespace-nowrap text-text-secondary", actions && "transition-opacity duration-[var(--dur-quick)] group-hover/actions:opacity-0 group-focus-within/actions:opacity-0 group-has-[[data-state=open]]/actions:opacity-0 [@media(hover:none)]:opacity-100", labelTone === "overdue" && "!font-semibold text-status-overdue", labelTone === "now" && "!font-semibold text-status-due")}>{label}</span>
+    <span className={cn("t-meta whitespace-nowrap text-text-secondary", actions && "transition-opacity duration-[var(--dur-quick)] group-hover/actions:opacity-0 group-focus-within/actions:opacity-0 group-has-[[data-state=open]]/actions:opacity-0 [@media(hover:none)]:opacity-100", labelTone === "overdue" && "!font-semibold text-status-overdue", labelTone === "now" && "!font-semibold text-status-due")}>{label}</span>
   </>;
   return <li data-leaving={leaving || undefined} className={cn("grid grid-rows-[1fr] transition-[grid-template-rows,opacity] duration-200 ease-[var(--ease-out)] motion-reduce:transition-none", leaving && "grid-rows-[0fr] opacity-0")}>
     <div className={cn("group/actions relative min-h-0", leaving && "overflow-hidden")}>

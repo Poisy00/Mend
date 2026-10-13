@@ -46,7 +46,7 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
     <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3.5">
       <div><dt className="t-caption text-text-secondary">Account</dt><dd className="t-label flex items-center gap-1"><span className="num">{account}</span><CopyButton value={account} label="account number" /></dd></div>
       <div><dt className="t-caption text-text-secondary">Case</dt><dd className="t-label">{item.caseNumber || "Not saved"}</dd></div>
-      <div><dt className="t-caption text-text-secondary">Due</dt><dd className="t-label num">{dueCaption(item, now)}</dd></div>
+      <div><dt className="t-caption text-text-secondary">Due</dt><dd className="t-label">{dueCaption(item, now)}</dd></div>
       <div><dt className="t-caption text-text-secondary">Attempts</dt><dd className="t-label num">{item.attemptCount}</dd></div>
     </dl>
     {item.notes && <p className="t-meta mt-4 line-clamp-3 border-t border-border pt-4 text-text-secondary"><span className="font-semibold text-foreground">Last note.</span> {item.notes}</p>}
@@ -54,14 +54,14 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
       <Button onClick={onResolve}><Check />Resolved<Kbd keys={["E"]} className="[@media(hover:none)]:hidden" /></Button>
       <DropdownMenu open={snoozeOpen} onOpenChange={onSnoozeOpenChange}>
         <DropdownMenuTrigger asChild><Button variant="secondary"><AlarmClock />Snooze<Kbd keys={["S"]} className="[@media(hover:none)]:hidden" /></Button></DropdownMenuTrigger>
-        <DropdownMenuContent align="end">{snoozeOptions.map(option => <DropdownMenuItem key={option.minutes} onSelect={() => onSnooze(option.minutes)}>{option.label}<span className="num ml-auto pl-4 text-text-muted">{clockTime(now + option.minutes * 60_000)}</span></DropdownMenuItem>)}</DropdownMenuContent>
+        <DropdownMenuContent align="end">{snoozeOptions.map(option => <DropdownMenuItem key={option.minutes} onSelect={() => onSnooze(option.minutes)}>{option.label}<span className="ml-auto pl-4 text-text-muted">{clockTime(now + option.minutes * 60_000)}</span></DropdownMenuItem>)}</DropdownMenuContent>
       </DropdownMenu>
       <Tooltip><TooltipTrigger asChild><Button asChild variant="secondary" size="icon"><Link href={`/follow-ups?selected=${item.id}`} aria-label="Open full follow-up"><PanelRightOpen /></Link></Button></TooltipTrigger><TooltipContent>Open full follow-up</TooltipContent></Tooltip>
     </div>
     <section className="mt-6" aria-label="History">
       <h3 className="t-caption font-semibold text-text-secondary">History</h3>
       {history?.id === item.id && (history.events.length
-        ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="num whitespace-nowrap text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
+        ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="whitespace-nowrap text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
         : <p className="t-meta mt-2 text-text-secondary">No history yet.</p>)}
     </section>
   </aside>;
