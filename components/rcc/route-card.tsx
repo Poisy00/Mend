@@ -28,13 +28,15 @@ export function RouteCard({ route, teamMode, recipient }: { route: RouteDecision
   const now = useSyncExternalStore<number | null>(subscribe, bucket, () => null);
   const minutes = now === null ? null : newYorkClock(new Date(now)).minutes;
   const remaining = minutes === null ? null : CUTOFF_MINUTES - minutes;
-  return <div aria-live="polite" className="rounded-xl bg-secondary px-[18px] py-4">
+  return <div aria-live="polite" className="shrink-0 rounded-xl bg-secondary px-[18px] py-3">
     <div className="flex flex-wrap items-center gap-2.5">
       <h3 className="t-heading">{route.name}</h3>
       <span className="t-caption rounded-full bg-accent px-2 py-0.5 !font-semibold text-primary">{teamMode === "auto" ? "Automatic" : "Override"}</span>
     </div>
-    {minutes !== null && remaining !== null && <p className="t-body mt-1 text-text-secondary">{formatClock(minutes)} ET, {remaining > 0 ? `${formatCountdown(remaining)} to Long Island cutoff` : "after cutoff"}</p>}
-    <p className="t-body mt-0.5 break-all text-text-secondary">{recipient.trim() || "No recipient set"}</p>
-    {route.warning && <p className="t-body mt-3 rounded-lg bg-status-due-tint px-3 py-2.5 font-medium text-status-due">{route.warning}</p>}
+    <p className="t-body mt-0.5 flex flex-wrap gap-x-3 text-text-secondary">
+      {minutes !== null && remaining !== null && <span>{formatClock(minutes)} ET, {remaining > 0 ? `${formatCountdown(remaining)} to Long Island cutoff` : "after cutoff"}</span>}
+      <span className="min-w-0 break-all">{recipient.trim() || "No recipient set"}</span>
+    </p>
+    {route.warning && <p className="t-body mt-2 rounded-lg bg-status-due-tint px-3 py-2 font-medium text-status-due">{route.warning}</p>}
   </div>;
 }

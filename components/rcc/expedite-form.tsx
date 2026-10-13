@@ -25,7 +25,7 @@ const routeTabs:{key:ExpediteInput["teamMode"];label:string}[]=[{key:"auto",labe
 type PreviousRequest={id:string;payload:ExpediteInput;draft:{to:string;subject:string};createdAt:string};
 const outlookLink=(to:string,subject:string)=>`/outlook-handoff?to=${encodeURIComponent(to)}&subject=${encodeURIComponent(subject)}`;
 export function ExpediteForm({initialDraft,initialPreferences}:{initialDraft:SavedDraft<ExpediteInput>;initialPreferences:RccPreferences}){const [form,setForm]=useState<ExpediteInput>(()=>initialDraft?{...blank,...initialDraft.payload,account:formatAccount(initialDraft.payload.account),phone:formatPhone(initialDraft.payload.phone)}:blank),[prefs,setPrefs]=useState<RccPreferences>(initialPreferences),[revision,setRevision]=useState(initialDraft?.revision??0),[pending,setPending]=useState(false),[notice,setNotice]=useState(""),[lastOutlookLink,setLastOutlookLink]=useState(""),[previous,setPrevious]=useState<PreviousRequest|null>(null),[view,setView]=useState<"compose"|"preview">("compose");
-const [attempted,setAttempted]=useState(false),[selectedTemplate,setSelectedTemplate]=useState<string | null>(()=>initialDraft?EXPEDITE_TEMPLATES.find(item=>item.reason===initialDraft.payload.reason&&item.summary===initialDraft.payload.summary)?.id??null:null);
+const [attempted,setAttempted]=useState(false),[showAllSuggestions,setShowAllSuggestions]=useState(false),[selectedTemplate,setSelectedTemplate]=useState<string | null>(()=>initialDraft?EXPEDITE_TEMPLATES.find(item=>item.reason===initialDraft.payload.reason&&item.summary===initialDraft.payload.summary)?.id??null:null);
 const [lastSavedPayload,setLastSavedPayload]=useState(()=>JSON.stringify(initialDraft?{...blank,...initialDraft.payload}:blank));
 const summaryRef=useRef<HTMLTextAreaElement>(null);
 const focusSummaryRef=useRef(false);
@@ -110,23 +110,31 @@ return (
           </div>
         </section>
       </div>
-      <aside className={`min-w-0 min-[1100px]:sticky min-[1100px]:top-6 min-[1100px]:-m-0.5 min-[1100px]:max-h-[calc(100dvh-3rem)] min-[1100px]:overflow-auto min-[1100px]:overscroll-contain min-[1100px]:p-0.5 ${view==="compose"?"hidden min-[1100px]:block":""}`}>
+      <aside className={`min-w-0 flex-col gap-3 min-[1100px]:sticky min-[1100px]:top-6 min-[1100px]:h-[calc(100dvh-3rem)] ${view==="compose"?"hidden min-[1100px]:flex":"flex"}`}>
         <RouteCard route={route} teamMode={form.teamMode} recipient={recipient} />
-        <p className={`${sectionLabel} mt-6`}>Live preview</p>
-        <div className="rounded-xl bg-[var(--document)] px-5 py-6 text-[var(--document-foreground)] shadow-[0_0_0_1px_rgba(0,0,0,.07),0_10px_30px_-26px_rgba(0,0,0,.22)] sm:px-7">
-          <div className="grid gap-x-3 gap-y-2 text-[13px] sm:grid-cols-[3.5rem_minmax(0,1fr)]">
-            <span className="text-[#746f6b]">To</span><span className="break-all">{draft.to||"Set recipient"}</span>
-            <span className="text-[#746f6b]">Subject</span><span className="font-medium break-words">{draft.subject}</span>
+        <p className={`${sectionLabel} mb-0 min-[1100px]:sr-only`}>Live preview</p>
+        <div className="rounded-xl bg-[var(--document)] text-[var(--document-foreground)] shadow-[0_0_0_1px_rgba(0,0,0,.07),0_10px_30px_-26px_rgba(0,0,0,.22)] min-[1100px]:min-h-0 min-[1100px]:flex-1 min-[1100px]:overflow-auto min-[1100px]:overscroll-contain">
+          <div className="bg-[var(--document)] px-5 pt-6 pb-6 sm:px-7 min-[1100px]:sticky min-[1100px]:top-0 min-[1100px]:z-10 min-[1100px]:pb-4">
+            <div className="grid gap-x-3 gap-y-2 text-[13px] sm:grid-cols-[3.5rem_minmax(0,1fr)]">
+              <span className="text-[#746f6b]">To</span><span className="break-all">{draft.to||"Set recipient"}</span>
+              <span className="text-[#746f6b]">Subject</span><span className="font-medium break-words">{draft.subject}</span>
+            </div>
+            <div className="mt-6 h-px bg-[#e7e3e0] min-[1100px]:mt-4" />
           </div>
-          <div className="mt-6 h-px bg-[#e7e3e0]" />
-          <div className="mt-6 overflow-hidden break-words" dangerouslySetInnerHTML={{__html:previewHtml}} />
-          <details className="mt-5 text-xs"><summary className="cursor-pointer text-[#746f6b] hover:text-[#282525]">Plain-text version</summary><pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6">{draft.plain}</pre></details>
+          <div className="px-5 pb-6 sm:px-7">
+            <div className="overflow-hidden break-words" dangerouslySetInnerHTML={{__html:previewHtml}} />
+            <details className="mt-5 text-xs"><summary className="cursor-pointer text-[#746f6b] hover:text-[#282525]">Plain-text version</summary><pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm leading-6">{draft.plain}</pre></details>
+          </div>
         </div>
-        <ReadinessChecklist blockers={readiness.blockers} route={route} values={form} recipient={recipient} attempted={attempted} />
-        {suggestions.length>0&&<ul className="mt-3 space-y-1">{suggestions.map(item => <li key={item} className="t-body flex items-start gap-2 text-text-secondary"><span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-status-due" />{item}</li>)}</ul>}
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Button size="lg" disabled={pending} aria-describedby="rcc-readiness-heading" onClick={prepare}>{pending?"Preparing…":"Open in Outlook"}<ArrowUpRight />{!pending&&<Kbd keys={["mod","Enter"]} className="[@media(hover:none)]:hidden" />}</Button>
-          <Button size="lg" variant="outline" onClick={()=>void copyFormatted()}><Clipboard />Copy formatted email</Button>
+        <div className="shrink-0 border-t border-border bg-sheet pt-3">
+          <ReadinessChecklist blockers={readiness.blockers} route={route} values={form} recipient={recipient} attempted={attempted} />
+          {suggestions.length>0&&<ul className="mt-2 space-y-0.5">
+            {(showAllSuggestions?suggestions:suggestions.slice(0,2)).map(item => <li key={item} className={`t-body flex items-start gap-2 text-text-secondary ${showAllSuggestions?"":"min-[1100px]:[&>span:last-child]:truncate"}`}><span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-status-due" /><span className="min-w-0">{item}</span></li>)}
+            {suggestions.length>2&&<li><button type="button" aria-expanded={showAllSuggestions} onClick={()=>setShowAllSuggestions(value=>!value)} className="t-meta ml-3.5 rounded-md px-1 font-semibold text-primary hover-fine:bg-accent">{showAllSuggestions?"Show fewer":`+${suggestions.length-2} more`}</button></li>}
+          </ul>}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button size="lg" disabled={pending} aria-describedby="rcc-readiness-heading" onClick={prepare}>{pending?"Preparing…":"Open in Outlook"}<ArrowUpRight />{!pending&&<Kbd keys={["mod","Enter"]} className="[@media(hover:none)]:hidden" />}</Button>
+            <Button size="lg" variant="outline" onClick={()=>void copyFormatted()}><Clipboard />Copy formatted email</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild><Button size="lg" variant="ghost">More options<ChevronDown /></Button></DropdownMenuTrigger>
             <DropdownMenuContent align="start" onCloseAutoFocus={event=>{if(focusSummaryRef.current){event.preventDefault();focusSummaryRef.current=false;requestAnimationFrame(()=>summaryRef.current?.focus());}}}>
@@ -137,9 +145,10 @@ return (
               <DropdownMenuItem className="min-h-10" onSelect={newRequest}>New request</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+            <p role="status" className="t-caption ml-auto text-text-secondary">{pending?"Preparing…":JSON.stringify(form)!==lastSavedPayload?"Autosaving…":<>Saved, revision <span className="num">{revision}</span></>}</p>
+          </div>
+          <p className="t-caption mt-2 text-text-secondary">Ctrl + Enter opens Outlook. This prepares a draft; it does not send an email or confirm an appointment.</p>
         </div>
-        <p role="status" className="t-caption mt-4 text-text-secondary">{pending?"Preparing…":JSON.stringify(form)!==lastSavedPayload?"Autosaving…":<>Saved, revision <span className="num">{revision}</span></>}</p>
-        <p className="t-caption mt-1 text-text-secondary">Ctrl + Enter opens Outlook. This prepares a draft; it does not send an email or confirm an appointment.</p>
       </aside>
     </div>
   </div>

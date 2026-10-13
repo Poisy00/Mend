@@ -34,6 +34,7 @@ export function CheckMark({ met, attempted = false }: { met: boolean; attempted?
 export function ReadinessChecklist({ blockers, route, values, recipient, attempted }: {
   blockers: string[]; route: RouteDecision; values: ExpediteInput; recipient: string; attempted: boolean;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const unmet = new Map<ItemKey, string>();
   for (const message of blockers) {
     const key = blockerItem(message);
@@ -55,9 +56,21 @@ export function ReadinessChecklist({ blockers, route, values, recipient, attempt
     { key: "recipient", label: `${route.id === "long-island" ? "Long Island" : "Nassau"} recipient` },
   ];
   const ready = items.filter(item => !unmet.has(item.key)).length;
-  return <section aria-labelledby="rcc-readiness-heading" className="mt-5">
-    <h3 id="rcc-readiness-heading" className="t-meta font-semibold text-text-secondary"><span className="num">{ready}</span> of <span className="num">{items.length}</span> ready</h3>
-    <ul className="mt-2 grid gap-x-4 sm:grid-cols-2">
+  const unmetItems = items.filter(item => unmet.has(item.key));
+  return <section aria-labelledby="rcc-readiness-heading">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+      <h3 id="rcc-readiness-heading" className="t-meta shrink-0 font-semibold text-text-secondary"><span className="num">{ready}</span> of <span className="num">{items.length}</span> ready</h3>
+      <div className="hidden min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1 min-[1100px]:flex">
+        {unmetItems.length === 0
+          ? <span className="t-body inline-flex items-center gap-2 text-text-secondary"><CheckMark met />Ready to send</span>
+          : unmetItems.map(({ key, label }) => {
+            const alert = attempted;
+            return <span key={key} className={cn("t-body inline-flex items-center gap-1.5", alert ? "text-status-overdue" : "text-text-primary")}><CheckMark met={false} attempted={alert} /><span className="sr-only">Needs attention: </span>{label}</span>;
+          })}
+      </div>
+      <button type="button" aria-expanded={expanded} aria-controls="rcc-readiness-list" onClick={() => setExpanded(value => !value)} className="t-meta hidden h-8 shrink-0 rounded-md px-2 font-semibold text-primary hover-fine:bg-accent min-[1100px]:inline-flex min-[1100px]:items-center">{expanded ? "Hide all" : "Show all"}</button>
+    </div>
+    <ul id="rcc-readiness-list" className={cn("mt-2 grid gap-x-4 sm:grid-cols-2 min-[1100px]:max-h-[calc((100dvh-3rem)*.4)] min-[1100px]:overflow-auto", !expanded && "min-[1100px]:hidden")}>
       {items.map(({ key, label }) => {
         const met = !unmet.has(key);
         const alert = !met && attempted;
