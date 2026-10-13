@@ -35,7 +35,7 @@ export const outcomeOptions: { key: string; label: string; effect: string; comma
 const zoneName = (zone: FollowUp["sourceTimezone"]) => zone === "Africa/Cairo" ? "Cairo" : "New York";
 const dateTime = (instant: string, zone: FollowUp["sourceTimezone"]) => new Date(instant).toLocaleString("en-US", { timeZone: zone, dateStyle: "medium", timeStyle: "short" });
 const heading = "t-meta mb-2.5 !font-semibold text-text-secondary";
-const fieldLabel = "t-meta grid gap-1.5 font-medium text-text-secondary";
+const fieldLabel = "group t-meta grid gap-1.5 font-medium text-text-secondary";
 
 function localInput(instant:string|null,zone:FollowUp["sourceTimezone"]){if(!instant)return "";const parts=new Intl.DateTimeFormat("en-US",{timeZone:zone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date(instant));const get=(part:string)=>parts.find(item=>item.type===part)?.value??"";return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;}
 
@@ -103,24 +103,24 @@ export function FollowUpDetail({ item, now, mended, pickOpen, onPickOpenChange, 
             })}
           </div>
           {pickOpen && <div className="mt-2 grid gap-2.5 rounded-[10px] bg-secondary p-3">
-            <label className="t-meta min-w-[190px] space-y-1.5 font-medium text-text-secondary"><span>New time, {zone}</span><MendDatePicker mode="datetime" value={rescheduleAt} onValueChange={setRescheduleAt} /></label>
+            <label className="group t-meta min-w-[190px] space-y-1.5 font-medium text-text-secondary"><span className="transition-colors duration-[120ms] group-focus-within:text-primary">New time, {zone}</span><MendDatePicker mode="datetime" value={rescheduleAt} onValueChange={setRescheduleAt} /></label>
             <Button onClick={() => { try { if (!rescheduleAt) throw new Error("Choose a new time"); void onAction(item, { type: "reschedule", dueAt: wallTimeToUtc(rescheduleAt, item.sourceTimezone) }); } catch (error) { toast.error(error instanceof Error ? error.message : "Choose a valid time"); } }}>Reschedule</Button>
           </div>}
         </div>}
 
     {editing
       ? <form ref={form} key={`${item.id}-${item.revision}`} onSubmit={save} className="mt-6 grid gap-3.5">
-        <label className={fieldLabel}>Customer name<Input name="customerName" defaultValue={item.customerName}/></label>
-        <label className={fieldLabel}>Account number<Input name="accountNumber" inputMode="numeric" maxLength={15} placeholder="xxxxx-xxxxxx-xx" required defaultValue={formatAccount(item.accountNumber)} onInput={event=>{event.currentTarget.value=formatAccount(event.currentTarget.value);}}/></label>
-        <label className={fieldLabel}>Phone number<Input name="phoneNumber" type="tel" inputMode="numeric" maxLength={12} placeholder="xxx-xxx-xxxx" required defaultValue={formatPhone(item.phoneNumber)} onInput={event=>{event.currentTarget.value=formatPhone(event.currentTarget.value);}}/></label>
-        <label className={fieldLabel}>Case number<Input name="caseNumber" defaultValue={item.caseNumber}/></label>
-        <label className={fieldLabel}>Reason<Input name="reason" required defaultValue={item.reason}/></label>
-        <label className={fieldLabel}>Priority<MendSelect name="priority" defaultValue={item.priority} options={[{value:"normal",label:"Normal"},{value:"urgent",label:"Urgent"}]} /></label>
-        <label className={fieldLabel}>Context<Textarea name="notes" defaultValue={item.notes}/></label>
-        <label className={fieldLabel}>Promise<Textarea name="promise" defaultValue={item.promise}/></label>
-        <label className={fieldLabel}>Complete when<Textarea name="completionCondition" defaultValue={item.completionCondition}/></label>
-        <label className={fieldLabel}>Appointment starts, {zone}<MendDatePicker mode="datetime" name="appointmentStart" defaultValue={localInput(item.appointmentStartUtc,item.sourceTimezone)}/></label>
-        <label className={fieldLabel}>Appointment ends<MendDatePicker mode="datetime" name="appointmentEnd" defaultValue={localInput(item.appointmentEndUtc,item.sourceTimezone)}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Customer name</span><Input name="customerName" defaultValue={item.customerName}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Account number</span><Input name="accountNumber" inputMode="numeric" maxLength={15} placeholder="xxxxx-xxxxxx-xx" required defaultValue={formatAccount(item.accountNumber)} onInput={event=>{event.currentTarget.value=formatAccount(event.currentTarget.value);}}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Phone number</span><Input name="phoneNumber" type="tel" inputMode="numeric" maxLength={12} placeholder="xxx-xxx-xxxx" required defaultValue={formatPhone(item.phoneNumber)} onInput={event=>{event.currentTarget.value=formatPhone(event.currentTarget.value);}}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Case number</span><Input name="caseNumber" defaultValue={item.caseNumber}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Reason</span><Input name="reason" required defaultValue={item.reason}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Priority</span><MendSelect name="priority" defaultValue={item.priority} options={[{value:"normal",label:"Normal"},{value:"urgent",label:"Urgent"}]} /></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Context</span><Textarea name="notes" defaultValue={item.notes}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Promise</span><Textarea name="promise" defaultValue={item.promise}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Complete when</span><Textarea name="completionCondition" defaultValue={item.completionCondition}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Appointment starts, {zone}</span><MendDatePicker mode="datetime" name="appointmentStart" defaultValue={localInput(item.appointmentStartUtc,item.sourceTimezone)}/></label>
+        <label className={fieldLabel}><span className="transition-colors duration-[120ms] group-focus-within:text-primary">Appointment ends</span><MendDatePicker mode="datetime" name="appointmentEnd" defaultValue={localInput(item.appointmentEndUtc,item.sourceTimezone)}/></label>
         <div className="flex gap-2"><Button disabled={saving} type="submit">{saving?"Saving…":"Save profile"}</Button><Button type="button" variant="outline" onClick={() => setEditing(false)}>Cancel</Button></div>
       </form>
       : <>
