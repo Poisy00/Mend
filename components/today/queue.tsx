@@ -42,16 +42,25 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
     return (first.find(item => ["overdue", "now"].includes(classifyFollowUp(item, serverNow))) ?? first[0])?.id ?? null;
   });
   const selectedIndex = useRef(0);
+  const orderedRef = useRef<FollowUp[]>([]);
   const listRef = useRef<HTMLUListElement>(null);
   useSlidingIndicator(listRef, mobile ? null : selectedId);
   const { resolve, snooze, finish, mendedId, leavingId } = useFollowUpActions({
-    onResolved: item => setItems(current => current.filter(entry => entry.id !== item.id)),
+    onResolved: item => {
+      // Pick the neighbour in the same update that removes the row, so the detail panel never goes empty for a commit.
+      const list = orderedRef.current;
+      const index = list.findIndex(entry => entry.id === item.id);
+      const next = list[index + 1] ?? list[index - 1];
+      setItems(current => current.filter(entry => entry.id !== item.id));
+      setSelectedId(current => current === item.id ? next?.id ?? null : current);
+    },
     onSnoozed: updated => setItems(current => current.map(entry => entry.id === updated.id ? updated : entry)),
   });
 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(timer); }, []);
 
   const ordered = useMemo(() => [...items].sort(byDue), [items]);
+  useEffect(() => { orderedRef.current = ordered; });
   const visible = filter === "all" ? ordered : ordered.filter(item => classifyFollowUp(item, now) === filter);
   const selected = items.find(item => item.id === selectedId) ?? null;
   const counts: Record<Filter, number> = { all: items.length, overdue: 0, now: 0, soon: 0, waiting: 0 };
