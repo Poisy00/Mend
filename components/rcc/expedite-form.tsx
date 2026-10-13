@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";import { PageHeader } from "@/co
 import { SaveCaseDialog } from "@/components/cases/save-dialog";
 import { DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { FilterTabs } from "@/components/focus-line/filter-tabs";
+import { SlidingIndicator,useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { ReadinessChecklist } from "./readiness-checklist";
 import { RouteCard } from "./route-card";
 import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger } from "@/components/ui/dialog";
@@ -20,6 +21,18 @@ const templateGroups = [
   { label: "Appointment and retention", ids: ["missed", "cancel"] },
   { label: "Special cases", ids: ["business", "damage"] },
 ];
+/** One row of template chips. The selected chip is a sliding indicator that morphs between chips; a group that does not hold the selection fades its indicator out. */
+function TemplateGroup({label,ids,selected,onPick}:{label:string;ids:string[];selected:string|null;onPick:(id:string)=>void}){
+  const chips=useRef<HTMLDivElement>(null);
+  useSlidingIndicator(chips,selected&&ids.includes(selected)?selected:null);
+  return <div>
+    <p className="t-caption mb-1.5 text-text-secondary">{label}</p>
+    <div ref={chips} data-indicator-host="" className="relative flex flex-wrap gap-1.5">
+      <SlidingIndicator className="rounded-full bg-accent shadow-[inset_0_0_0_1px_var(--primary)]" />
+      {ids.map(id => { const template=EXPEDITE_TEMPLATES.find(item => item.id===id)!; const on=selected===id; return <button key={id} type="button" data-indicator-key={id} data-indicator-active={on||undefined} aria-pressed={on} onClick={() => onPick(id)} className="t-label relative z-10 h-10 rounded-full bg-transparent px-3.5 shadow-[inset_0_0_0_1px_var(--border)] outline-none transition-[background-color,color,box-shadow] duration-[var(--dur-quick)] [--ind-bg:var(--accent)] [--ind-shadow:inset_0_0_0_1px_var(--primary)] not-aria-pressed:hover-fine:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring aria-pressed:text-primary aria-pressed:shadow-none">{template.label}</button>; })}
+    </div>
+  </div>;
+}
 const viewTabs:{key:"compose"|"preview";label:string}[]=[{key:"compose",label:"Compose"},{key:"preview",label:"Preview"}];
 const routeTabs:{key:ExpediteInput["teamMode"];label:string}[]=[{key:"auto",label:"Automatic"},{key:"long-island",label:"Long Island"},{key:"nassau",label:"Nassau"}];
 type PreviousRequest={id:string;payload:ExpediteInput;draft:{to:string;subject:string};createdAt:string};
@@ -76,12 +89,7 @@ return (
         <section>
           <h2 className={sectionLabel}>Start from a template</h2>
           <div className="grid gap-3.5">
-            {templateGroups.map(group => <div key={group.label}>
-              <p className="t-caption mb-1.5 text-text-secondary">{group.label}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {group.ids.map(id => { const template=EXPEDITE_TEMPLATES.find(item => item.id===id)!; return <button key={id} type="button" aria-pressed={selectedTemplate===id} onClick={() => { setForm(current => applyExpediteTemplate(current,id));setSelectedTemplate(id);toast.success(template.label+" template applied"); }} className="t-label h-10 rounded-full bg-sheet px-3.5 shadow-[inset_0_0_0_1px_var(--border)] outline-none transition-[background-color,color,box-shadow] duration-[var(--dur-quick)] not-aria-pressed:hover-fine:bg-surface-hover focus-visible:outline-2 focus-visible:outline-ring aria-pressed:bg-accent aria-pressed:text-primary aria-pressed:shadow-[inset_0_0_0_1px_var(--primary)]">{template.label}</button>; })}
-              </div>
-            </div>)}
+            {templateGroups.map(group => <TemplateGroup key={group.label} label={group.label} ids={group.ids} selected={selectedTemplate} onPick={id => { setForm(current => applyExpediteTemplate(current,id));setSelectedTemplate(id);toast.success(EXPEDITE_TEMPLATES.find(item => item.id===id)!.label+" template applied"); }} />)}
           </div>
         </section>
         <section>
