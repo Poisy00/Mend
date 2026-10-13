@@ -14,8 +14,8 @@ export const historyLabel = (type: string) => `${type.charAt(0).toUpperCase()}${
  * Send, undo, resolve and snooze for the Focus line, with the toasts and Undo actions.
  * Resolve plays the stitch first (`mendedId`), then collapses the row (`leavingId`) before `onResolved` runs.
  */
-export function useFollowUpActions({ onResolved, onSnoozed, onRestored }: {
-  onResolved?: (item: FollowUp) => void; onSnoozed?: (item: FollowUp) => void; onRestored?: (item: FollowUp) => void;
+export function useFollowUpActions({ onResolved, onSnoozed, onRestored, onFailed }: {
+  onResolved?: (item: FollowUp) => void; onSnoozed?: (item: FollowUp) => void; onRestored?: (item: FollowUp) => void; onFailed?: () => void;
 } = {}) {
   const router = useRouter();
   const [mendedId, setMendedId] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function useFollowUpActions({ onResolved, onSnoozed, onRestored }: {
     } catch {
       toast.error("Unable to update this follow-up.");
     }
-    router.refresh();
+    if (onFailed) onFailed(); else router.refresh();
     return null;
   }
 

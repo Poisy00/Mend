@@ -98,7 +98,7 @@ export function FollowUpDetail({ item, now, mended, pickOpen, onPickOpenChange, 
               return <button key={option.key} type="button" aria-expanded={pick ? pickOpen : undefined} onClick={() => pick ? onPickOpenChange(!pickOpen) : void onAction(item, option.command)}
                 className={cn("flex min-h-[60px] w-full flex-col items-start gap-0.5 rounded-[10px] px-3 py-2.5 text-left outline-none transition-colors duration-[var(--dur-quick)] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring", pick && pickOpen ? "bg-accent shadow-[inset_0_0_0_1px_var(--primary)]" : "bg-sheet shadow-[inset_0_0_0_1px_var(--border)] hover-fine:bg-surface-hover")}>
                 <span className="t-label flex w-full items-center justify-between gap-2 !font-semibold">{option.label}<Kbd keys={[option.key]} className="[@media(hover:none)]:hidden" /></span>
-                <span className="t-caption text-text-secondary">{option.effect}</span>
+                <span className="t-caption text-text-secondary">{option.command.type === "no_answer" && item.attemptCount === 0 ? "Retry in 15 min" : option.effect}</span>
               </button>;
             })}
           </div>

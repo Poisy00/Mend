@@ -78,6 +78,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
     },
     onSnoozed: replace,
     onRestored: replace,
+    onFailed: () => { refresh().catch(() => toast.error("Unable to load follow-ups")); },
   });
 
   useEffect(() => { const timer = window.setTimeout(() => setQuery(search.trim()), 250); return () => window.clearTimeout(timer); }, [search]);
