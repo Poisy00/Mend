@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AlarmClock, Check, PanelRightOpen } from "lucide-react";
 import { clockTime, snoozeOptions } from "@/components/focus-line/actions";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { MendLink as Link } from "@/components/mend-link";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
@@ -35,7 +36,7 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
     return () => { active = false; };
   }, [item.id, item.revision]);
 
-  return <aside aria-label="Selected follow-up" className="mend-pane rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border),0_12px_32px_-20px_rgb(0_0_0/.18)]">
+  return <aside aria-label="Selected follow-up" className="mend-pane rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border),0_12px_32px_-20px_rgb(0_0_0/.18)]"><FadeSwap swapKey={item.id} speed="panel">
     <StatusPill tone={display.tone}>{display.label}</StatusPill>
     <h2 className={cn("mt-3 text-[24px] leading-[1.2] font-semibold tracking-[-0.02em]", mended && "mend-stitch")}>{displayName(item.customerName)}</h2>
     <p className="t-body-lg mt-1.5 text-text-secondary">{item.reason}</p>
@@ -64,5 +65,5 @@ export function FocusDetail({ item, now, onResolve, onSnooze, snoozeOpen, onSnoo
         ? <ul className="mt-2">{history.events.slice(0, 3).map(event => <li key={event.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="whitespace-nowrap text-text-muted">{relativeTime(event.createdAt, now)}</span><span>{event.type.charAt(0).toUpperCase()}{event.type.replaceAll("_", " ").slice(1)}</span></li>)}</ul>
         : <p className="t-meta mt-2 text-text-secondary">No history yet.</p>)}
     </section>
-  </aside>;
+  </FadeSwap></aside>;
 }

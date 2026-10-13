@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusPill } from "@/components/ui/status";
 import { CopyButton } from "@/components/ui/copy-button";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs } from "@/components/focus-line/filter-tabs";
 import { LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { cairoDay, cairoFormat } from "@/components/focus-line/timeline";
@@ -54,6 +55,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMobileDetail();
   const firstSearch = useRef(true);
+  const [listKey, setListKey] = useState(0);
 
   useEffect(() => { if (!initialSelected) return; const timer = window.setTimeout(() => { void select(initialSelected, false); document.querySelector(`[data-row-id="${CSS.escape(initialSelected.id)}"]`)?.scrollIntoView({ block: "nearest" }); }, 0); return () => window.clearTimeout(timer); // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -77,7 +79,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
     setLoading(false);
   }, [url]);
 
-  useEffect(() => { if (firstSearch.current) { firstSearch.current = false; return; } let active = true; fetch(url()).then(response => { if (!response.ok) throw new Error(); return response.json() as Promise<Page>; }).then(page => { if (active) { setItems(page.items); setNextCursor(page.nextCursor); setLoading(false); } }).catch(() => { if (active) { setLoading(false); toast.error("Unable to load Cases"); } }); return () => { active = false; }; }, [url]);
+  useEffect(() => { if (firstSearch.current) { firstSearch.current = false; return; } let active = true; fetch(url()).then(response => { if (!response.ok) throw new Error(); return response.json() as Promise<Page>; }).then(page => { if (active) { setItems(page.items); setNextCursor(page.nextCursor); setLoading(false); setListKey(key => key + 1); } }).catch(() => { if (active) { setLoading(false); toast.error("Unable to load Cases"); } }); return () => { active = false; }; }, [url]);
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
@@ -130,6 +132,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
   const selectedDisplay = selected ? caseDisplay(selected) : null;
   const renderDetail = (embedded: boolean) => selected && selectedDisplay ? <aside aria-label="Selected Case" className={cn("relative", !embedded && "mend-pane max-h-[calc(100dvh-3rem)] overflow-auto overscroll-contain rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border),0_12px_32px_-20px_rgb(0_0_0/.18)]")}>
     {!embedded && <Button variant="ghost" size="icon-sm" onClick={() => setSelected(null)} aria-label="Close details" className="absolute top-3 right-3"><X /></Button>}
+    <FadeSwap swapKey={selected.id} speed="panel">
     <div className="flex flex-wrap items-center gap-2">
       <StatusPill tone={selectedDisplay.tone} icon={selectedDisplay.icon}>{selectedDisplay.label}</StatusPill>
       {selected.priority === "High" && selected.status !== "Closed" && <span className="t-caption rounded-full bg-status-overdue-tint px-2 py-0.5 !font-semibold text-status-overdue">High priority</span>}
@@ -150,6 +153,7 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
         : history.length ? <ul>{history.map(entry => <li key={entry.id} className="t-meta grid grid-cols-[80px_1fr] gap-3 py-1.5"><span className="whitespace-nowrap text-text-muted">{relativeTime(entry.createdAt, now)}</span><span>{historyLabel(entry.type)}</span></li>)}</ul>
         : <p className="t-meta text-text-secondary">No history yet.</p>}
     </section>
+    </FadeSwap>
   </aside> : null;
 
   return <div>
@@ -158,10 +162,10 @@ export function CaseQueue({ initialPage, initialSelected }: { initialPage: Page;
       <section className="min-h-[500px] min-w-0" aria-label="Cases">
         <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-3">
           <div className="relative min-w-[min(100%,220px)] flex-[0_1_300px]"><Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-text-muted"/><Input value={search} onChange={event => { setSearch(event.target.value); setLoading(event.target.value.trim() !== query); }} placeholder="Search your Cases" aria-label="Search your Cases" className="h-10 rounded-[10px] border-0 bg-secondary pl-9 shadow-none focus-visible:ring-0 focus-visible:shadow-[inset_0_0_0_1px_var(--ring)]"/></div>
-          <FilterTabs label="Filter Cases" tabs={statusTabs} value={filter} onChange={value => { if (value !== filter) { setLoading(true); setFilter(value); } }} />
+          <FilterTabs label="Filter Cases" tabs={statusTabs} value={filter} onChange={value => { if (value !== filter) setFilter(value); }} />
           <p className="t-meta ml-auto text-text-secondary"><span className="num">{items.length}{nextCursor ? "+" : ""}</span> {items.length === 1 && !nextCursor ? "Case" : "Cases"}</p>
         </div>
-        {loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <ul>{items.map((item, index) => { const d = caseDisplay(item); return <LineRow key={item.id} id={item.id} ends={spineEnds(index === 0, index === items.length - 1)} gutter={updatedGutter(item.updatedAt, now)} node={caseNode[item.status]} name={item.customerName || item.accountNumber} ident={item.humanId} subtitle={item.summary} label={d.label} quiet={item.status === "Closed"} selected={selected?.id === item.id} onSelect={() => void select(item)} mended={false} leaving={false} onStitchEnd={() => {}} />; })}</ul>}
+        <FadeSwap swapKey={listKey}>{loading ? <div className="py-4"><WorkRowSkeleton count={5} /></div> : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">No Cases in this view.</h2><p className="t-meta mt-1 text-text-secondary">Save a follow-up or prepared RCC draft when you need a record.</p></div> : <ul>{items.map((item, index) => { const d = caseDisplay(item); return <LineRow key={item.id} id={item.id} ends={spineEnds(index === 0, index === items.length - 1)} gutter={updatedGutter(item.updatedAt, now)} node={caseNode[item.status]} name={item.customerName || item.accountNumber} ident={item.humanId} subtitle={item.summary} label={d.label} quiet={item.status === "Closed"} selected={selected?.id === item.id} onSelect={() => void select(item)} mended={false} leaving={false} onStitchEnd={() => {}} />; })}</ul>}</FadeSwap>
         {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="secondary" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more Cases"}</Button>}
       </section>
