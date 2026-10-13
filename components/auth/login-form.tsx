@@ -109,7 +109,7 @@ export function LoginForm() {
 
     <section ref={cardRef} className={clsx(styles.card, phase === "success" && styles.cardSuccess)} aria-labelledby="login-title">
       <span className={clsx(styles.focusNode, focused && styles.focusVisible)} style={{ transform: `translateY(${focusY}px) scale(${focused ? 1 : 0.28})` }} aria-hidden="true" />
-      <h1 id="login-title">Sign in</h1>
+      <h1 id="login-title" className="t-title">Sign in</h1>
 
       <form className={styles.form} onSubmit={submit} noValidate>
         <div className={styles.field}>
@@ -136,7 +136,7 @@ export function LoginForm() {
           {error && <p className={styles.formError} role="alert">{error}</p>}
         </div>
         <button className={clsx(styles.login, styles[phase])} type="submit" disabled={phase === "connecting" || phase === "connected" || phase === "success"} aria-label={phase === "connecting" || phase === "connected" ? "Signing in" : phase === "success" ? "Signed in" : "Log in"}>
-          <span className={styles.loginLabel}>Log in <svg className={styles.arrow} viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11m-4-4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+          <span className={styles.loginLabel}>Log in</span>
           <span className={styles.connector} aria-hidden="true"><span className={clsx(styles.connectorPiece, styles.left)} /><span className={clsx(styles.connectorPiece, styles.right)} /><span className={styles.irisDot} /><svg className={styles.check} viewBox="0 0 20 20"><path d="M4 10.5l4 4L16 6" /></svg></span>
         </button>
       </form>
