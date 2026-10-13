@@ -46,8 +46,13 @@ function parseStoredTimestamp(value: string) {
   return Date.parse(normalized);
 }
 
+function clientIp(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || request.headers.get("x-real-ip")?.trim() || request.headers.get("cf-connecting-ip")?.trim() || "unknown";
+}
+
 async function originFingerprint(request: Request) {
-  const address = request.headers.get("cf-connecting-ip") ?? "unknown";
+  const address = clientIp(request);
   const agent = safeUserAgent(request.headers.get("user-agent"));
   return sha256(`${address}\u0000${agent}\u0000${requiredSecret("AUTH_PEPPER")}`);
 }
