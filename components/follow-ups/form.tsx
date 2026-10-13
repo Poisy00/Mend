@@ -1,12 +1,15 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
 import { MendLink as Link } from "@/components/mend-link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { callbackPresetWallTime, wallDateTime, wallTimeToUtc } from "@/lib/follow-ups/time";
+import type { FollowUp } from "@/lib/follow-ups/types";
 import { Button } from "@/components/ui/button";
+import { DialogClose } from "@/components/ui/dialog";
+import { Kbd } from "@/components/ui/kbd";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/ui/page-header";
@@ -32,9 +35,14 @@ function wallClock(value: string) {
 }
 type Zone = "Africa/Cairo" | "America/New_York";
 type Draft = { fields: Record<string, string>; zone: Zone };
+export type FollowUpDraft = { payload: Draft; revision: number };
 const callbackPresets = [{value:"30",label:"In 30 minutes"},{value:"60",label:"In 1 hour"},{value:"120",label:"In 2 hours"},{value:"custom",label:"Custom time"}];
 
-export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft; revision: number } | null }) {
+/**
+ * `page` is the full-page form with its side preview. `dialog` renders the same form for the New follow-up dialog:
+ * no page header, the preview row on top of the scrolling body, a sticky footer, and `onCreated` instead of a route change.
+ */
+export function FollowUpForm({ initialDraft, variant = "page", onCreated }: { initialDraft: FollowUpDraft | null; variant?: "page" | "dialog"; onCreated?: (item?: FollowUp) => void }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const draftRevision = useRef(initialDraft?.revision ?? 0);
@@ -54,6 +62,14 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
   const [typed, setTyped] = useState({ name: initialDraft?.payload.fields.customerName ?? "", account: formatAccount(initialDraft?.payload.fields.accountNumber ?? ""), caseNumber: initialDraft?.payload.fields.caseNumber ?? "" });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const inDialog = variant === "dialog";
+
+  // In the dialog, start on the first empty field once the saved draft has loaded.
+  useEffect(() => {
+    if (!inDialog) return;
+    const fields = Array.from(formRef.current?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input:not([type=hidden]):not([readonly]), textarea") ?? []);
+    (fields.find(field => !field.value) ?? fields[0])?.focus();
+  }, [inDialog]);
 
   function currentDraft(nextZone: Zone = zone): Draft {
     const fields = formRef.current ? Object.fromEntries(new FormData(formRef.current).entries()) as Record<string, string> : {};
@@ -122,11 +138,11 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
       if (techWindow && Date.parse(appointmentEndUtc!) <= Date.parse(appointmentStartUtc!)) throw new Error("Appointment end must follow its start");
       const input = { customerName: form.get("customerName"), accountNumber: form.get("accountNumber"), phoneNumber: form.get("phoneNumber"), caseNumber: form.get("caseNumber"), reason: form.get("reason"), priority: form.get("priority"), dueAt, sourceTimezone: zone, notes: form.get("notes"), promise: form.get("promise"), completionCondition: form.get("completionCondition"), appointmentStartUtc, appointmentEndUtc };
       const response = await fetch("/api/follow-ups", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
-      const data = await response.json() as { error?: string };
+      const data = await response.json() as { error?: string; item?: FollowUp };
       if (!response.ok) throw new Error(data.error ?? "Unable to create follow-up");
       await saveDraft({ fields: {}, zone }).catch(() => toast.error("Follow-up saved, but the draft could not be cleared"));
       toast.success("Follow-up scheduled");
-      router.replace("/follow-ups");
+      if (onCreated) onCreated(data.item); else router.replace("/follow-ups");
     } catch (issue) {
       setError(issue instanceof Error ? issue.message : "Unable to create follow-up");
     } finally { setPending(false); }
@@ -138,11 +154,7 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
   }
   const label = "text-xs font-medium text-text-secondary transition-colors duration-[120ms] group-focus-within:text-primary";
 
-  return <div className="mx-auto max-w-[800px] min-[1100px]:max-w-[1120px]">
-    <Link href="/follow-ups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Follow-ups</Link>
-    <div className="mt-8"><PageHeader eyebrow="New follow-up" title="Keep your promise." description="Capture what to call about and when. The queue will bring it back at the right time." /></div>
-    <div className="mt-9 grid items-start gap-10 min-[1100px]:grid-cols-[minmax(0,1fr)_340px] min-[1300px]:gap-16">
-    <form ref={formRef} onInput={() => { syncTyped(); scheduleDraft(); }} onSubmit={submit} className="min-w-0 space-y-8">
+  const fields = <>
       <section>
         <h2 className={sectionLabel}>Customer</h2>
         <div className="grid gap-x-7 gap-y-6 sm:grid-cols-2">
@@ -178,15 +190,38 @@ export function FollowUpForm({ initialDraft }: { initialDraft: { payload: Draft;
         </div>
       </section>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+  </>;
+  const previewRow = <ul inert aria-hidden="true" className="pointer-events-none rounded-[14px] bg-sheet p-2 shadow-[0_0_0_1px_var(--border)]">
+    <LineRow id="preview" ends="before:hidden" gutter={wallClock(dates.dueAt) || "Time"} node="soon" name={typed.name || typed.account || "Customer"} ident={typed.caseNumber || typed.account}
+      tag={priority === "urgent" ? <span className="t-caption shrink-0 rounded-full bg-status-overdue-tint px-1.5 !font-semibold text-status-overdue">Urgent</span> : undefined}
+      subtitle={reason} label={zone === "Africa/Cairo" ? "Cairo" : "New York"} selected={false} onSelect={() => {}} mended={false} leaving={false} onStitchEnd={() => {}} />
+  </ul>;
+
+  if (inDialog) return <form ref={formRef} id="new-follow-up-form" onInput={() => { syncTyped(); scheduleDraft(); }} onSubmit={submit}
+    onKeyDown={(event: KeyboardEvent<HTMLFormElement>) => { if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) { event.preventDefault(); event.currentTarget.requestSubmit(); } }}
+    className="flex min-h-0 flex-1 flex-col">
+    <div className="min-h-0 flex-1 space-y-8 overflow-y-auto overscroll-contain px-6 py-5">
+      <div><h2 className={sectionLabel}>In your line</h2>{previewRow}</div>
+      {fields}
+    </div>
+    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-border bg-sheet px-6 py-4">
+      <span className="t-caption mr-auto hidden items-center gap-1.5 text-text-muted [@media(hover:hover)_and_(pointer:fine)]:inline-flex"><Kbd keys={["mod", "Enter"]} />Create</span>
+      <DialogClose asChild><Button variant="ghost" type="button">Cancel</Button></DialogClose>
+      <Button type="submit" disabled={pending}>{pending ? "Creating…" : "Create follow-up"}</Button>
+    </div>
+  </form>;
+
+  return <div className="mx-auto max-w-[800px] min-[1100px]:max-w-[1120px]">
+    <Link href="/follow-ups" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" />Follow-ups</Link>
+    <div className="mt-8"><PageHeader eyebrow="New follow-up" title="Keep your promise." description="Capture what to call about and when. The queue will bring it back at the right time." /></div>
+    <div className="mt-9 grid items-start gap-10 min-[1100px]:grid-cols-[minmax(0,1fr)_340px] min-[1300px]:gap-16">
+    <form ref={formRef} onInput={() => { syncTyped(); scheduleDraft(); }} onSubmit={submit} className="min-w-0 space-y-8">
+      {fields}
       <div className="flex justify-end gap-3 border-t border-border pt-6"><Button variant="outline" type="button" asChild><Link href="/follow-ups">Cancel</Link></Button><Button type="submit" className="min-w-[160px]" disabled={pending}>{pending ? "Scheduling…" : "Schedule follow-up"}</Button></div>
     </form>
     <aside aria-label="Preview" className="hidden min-w-0 min-[1100px]:sticky min-[1100px]:top-6 min-[1100px]:block">
       <h2 className={sectionLabel}>In your line</h2>
-      <ul inert aria-hidden="true" className="pointer-events-none rounded-[14px] bg-sheet p-2 shadow-[0_0_0_1px_var(--border)]">
-        <LineRow id="preview" ends="before:hidden" gutter={wallClock(dates.dueAt) || "Time"} node="soon" name={typed.name || typed.account || "Customer"} ident={typed.caseNumber || typed.account}
-          tag={priority === "urgent" ? <span className="t-caption shrink-0 rounded-full bg-status-overdue-tint px-1.5 !font-semibold text-status-overdue">Urgent</span> : undefined}
-          subtitle={reason} label={zone === "Africa/Cairo" ? "Cairo" : "New York"} selected={false} onSelect={() => {}} mended={false} leaving={false} onStitchEnd={() => {}} />
-      </ul>
+      {previewRow}
       <p className="t-caption mt-3 text-text-secondary">This is how the follow-up will appear in your queue.</p>
     </aside>
     </div>
