@@ -95,7 +95,7 @@ body { background:var(--desk); color:var(--text-primary); font-family:"Schibsted
 h1, h2, h3 { text-wrap:balance; }
 p { text-wrap:pretty; }
 button, a { -webkit-tap-highlight-color:transparent; }
-:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
+@layer base { :focus-visible { outline:2px solid var(--ring); outline-offset:2px; } }
 /* Shared checklist mark: hollow ring when unmet, iris check when met. Animates only on unmet to met. */
 .mend-check { position:relative; display:inline-block; width:16px; height:16px; flex:none; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1.5px var(--control-edge); }
 .mend-check[data-state="attempted"] { box-shadow:inset 0 0 0 1.5px var(--status-overdue); }

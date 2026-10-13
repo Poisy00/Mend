@@ -145,4 +145,4 @@ return (
   </div>
 );
 }
-function Field({label,children,className=""}:{label:string;children:React.ReactNode;className?:string}){return <label className={`block space-y-1.5 ${className}`}><span className="text-xs font-medium text-text-secondary">{label}</span>{children}</label>;}
+function Field({label,children,className=""}:{label:string;children:React.ReactNode;className?:string}){return <label className={`group block space-y-1.5 ${className}`}><span className="text-xs font-medium text-text-secondary transition-colors duration-[120ms] group-focus-within:text-primary">{label}</span>{children}</label>;}
