@@ -125,7 +125,7 @@ return (
         <ReadinessChecklist blockers={readiness.blockers} route={route} values={form} recipient={recipient} attempted={attempted} />
         {suggestions.length>0&&<ul className="mt-3 space-y-1">{suggestions.map(item => <li key={item} className="t-body flex items-start gap-2 text-text-secondary"><span aria-hidden="true" className="mt-[7px] size-1.5 shrink-0 rounded-full bg-status-due" />{item}</li>)}</ul>}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Button size="lg" disabled={pending||!readiness.ready} onClick={prepare}>{pending?"Preparing…":"Open in Outlook"}<ArrowUpRight />{!pending&&<Kbd keys={["mod","Enter"]} className="[@media(hover:none)]:hidden" />}</Button>
+          <Button size="lg" disabled={pending} aria-describedby="rcc-readiness-heading" onClick={prepare}>{pending?"Preparing…":"Open in Outlook"}<ArrowUpRight />{!pending&&<Kbd keys={["mod","Enter"]} className="[@media(hover:none)]:hidden" />}</Button>
           <Button size="lg" variant="outline" onClick={()=>void copyFormatted()}><Clipboard />Copy formatted email</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild><Button size="lg" variant="ghost">More options<ChevronDown /></Button></DropdownMenuTrigger>
