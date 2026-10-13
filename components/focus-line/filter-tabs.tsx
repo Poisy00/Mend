@@ -1,6 +1,7 @@
 "use client";
 
-import type { HTMLAttributes, KeyboardEvent } from "react";
+import { useRef, type HTMLAttributes, type KeyboardEvent } from "react";
+import { SlidingIndicator, useSlidingIndicator } from "@/components/ui/sliding-indicator";
 import { cn } from "@/lib/utils";
 
 export type FilterTone = "neutral" | "overdue" | "due" | "accent" | "done";
@@ -23,6 +24,8 @@ export function FilterTabs<K extends string>({ tabs, value, onChange, label, var
   variant?: "toggle" | "tabs"; tabProps?: (key: K) => HTMLAttributes<HTMLButtonElement>; className?: string;
 }) {
   const asTabs = variant === "tabs";
+  const strip = useRef<HTMLDivElement>(null);
+  useSlidingIndicator(strip, value);
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (!asTabs) return;
     const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
@@ -32,11 +35,12 @@ export function FilterTabs<K extends string>({ tabs, value, onChange, label, var
     onChange(next.key);
     window.requestAnimationFrame(() => event.currentTarget.querySelector<HTMLElement>('[role="tab"][aria-selected="true"]')?.focus());
   }
-  return <div role={asTabs ? "tablist" : "group"} aria-label={label} onKeyDown={onKeyDown} className={cn("flex w-max max-w-full gap-1 overflow-x-auto rounded-[12px] bg-desk p-1", className)}>
+  return <div ref={strip} role={asTabs ? "tablist" : "group"} aria-label={label} onKeyDown={onKeyDown} className={cn("relative flex w-max max-w-full gap-1 overflow-x-auto rounded-[12px] bg-desk p-1", className)}>
+    <SlidingIndicator className="rounded-[9px] bg-sheet shadow-chip" />
     {tabs.map(({ key, label: text, count, tone = "neutral" }) => {
       const active = value === key;
-      return <button key={key} type="button" {...(asTabs ? { role: "tab", "aria-selected": active, tabIndex: active ? 0 : -1 } : { "aria-pressed": active })} {...tabProps?.(key)} onClick={() => onChange(key)}
-        className={cn("t-label inline-flex h-8 shrink-0 items-center gap-2 rounded-[9px] px-3 whitespace-nowrap outline-none transition-colors duration-[var(--dur-quick)] focus-visible:outline-2 focus-visible:outline-ring", active ? "bg-sheet shadow-chip text-foreground" : "text-text-secondary")}>
+      return <button key={key} type="button" data-indicator-key={key} data-indicator-active={active || undefined} {...(asTabs ? { role: "tab", "aria-selected": active, tabIndex: active ? 0 : -1 } : { "aria-pressed": active })} {...tabProps?.(key)} onClick={() => onChange(key)}
+        className={cn("t-label relative z-10 inline-flex h-8 shrink-0 items-center gap-2 rounded-[9px] px-3 whitespace-nowrap outline-none transition-colors duration-150 [--ind-bg:var(--sheet)] [--ind-shadow:var(--chip-shadow)] focus-visible:outline-2 focus-visible:outline-ring", active ? "text-foreground" : "text-text-secondary")}>
         {text}{count !== undefined && <span className={cn("t-caption num inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 !font-semibold", chipTone[tone])}>{count}</span>}
       </button>;
     })}
