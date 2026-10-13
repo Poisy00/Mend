@@ -19,6 +19,7 @@ import { MendLink as Link } from "@/components/mend-link";
 import { refreshQueueCounts } from "@/components/use-queue-counts";
 import { useMobileDetail } from "@/components/use-mobile-detail";
 import { clockTime, useFollowUpActions } from "@/components/focus-line/actions";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs, type FilterTab } from "@/components/focus-line/filter-tabs";
 import { focusHeadline } from "@/components/focus-line/headline";
 import { LineActions, LineDay, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
@@ -177,7 +178,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
           <FilterTabs label="Filter follow-ups" tabs={tabs.map(tab => ({ ...tab, count: counts[tab.key] }))} value={filter} onChange={selectFilter} />
           <p className="t-meta ml-auto text-text-secondary"><span className="num">{visible.length}{nextCursor ? "+" : ""}</span> {visible.length === 1 && !nextCursor ? "follow-up" : "follow-ups"}</p>
         </div>
-        {loading ? <div className="py-4" aria-label="Loading follow-ups"><WorkRowSkeleton count={5} /></div>
+        <FadeSwap swapKey={filter}>{loading ? <div className="py-4" aria-label="Loading follow-ups"><WorkRowSkeleton count={5} /></div>
           : items.length === 0 ? <div className="py-16 text-center"><h2 className="t-heading">{query ? "No matching follow-ups." : "No follow-ups here yet."}</h2><p className="t-meta mt-1 text-text-secondary">{query ? "Try a different name, account or case number." : "Create one to keep the next call in sight."}</p></div>
             : entries.length ? <ul>
               {entries.map((entry, index) => {
@@ -198,7 +199,7 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
                   mended={mendedId === item.id} leaving={leavingId === item.id} onStitchEnd={() => finish(item.id)}
                   actions={done ? undefined : <LineActions name={name} onResolve={() => void resolve(item)} onSnooze={minutes => void snooze(item, minutes)} snoozeOpen={isSelected ? snoozeOpen : undefined} onSnoozeOpenChange={isSelected ? setSnoozeOpen : undefined} />} />;
               })}
-            </ul> : <p className="t-meta py-12 text-center text-text-secondary">{query ? "No matching follow-ups." : "Nothing in this filter."}</p>}
+            </ul> : <p className="t-meta py-12 text-center text-text-secondary">{query ? "No matching follow-ups." : "Nothing in this filter."}</p>}</FadeSwap>
         {loadingMore && <WorkRowSkeleton count={2} />}
         {nextCursor && <Button variant="secondary" className="my-5 w-full" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? "Loading…" : "Load more follow-ups"}</Button>}
         {!isMobile && <p className="t-caption mt-4 hidden flex-wrap items-center gap-x-4 gap-y-2 text-text-muted [@media(hover:hover)_and_(pointer:fine)]:flex">
@@ -208,8 +209,8 @@ export function FollowUpQueue({ initialPage, initialSelected, now: serverNow }: 
           <span className="inline-flex items-center gap-1.5"><Kbd keys={["S"]} />Snooze</span>
         </p>}
       </section>
-      {!isMobile && current && <div className="sticky top-6"><FollowUpDetail key={current.id} item={current} mended={mendedId === current.id} onClose={() => setSelected(null)} {...detailProps} /></div>}
+      {!isMobile && current && <div className="sticky top-6"><FollowUpDetail item={current} mended={mendedId === current.id} onClose={() => setSelected(null)} {...detailProps} /></div>}
     </div>
-    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Follow-up</SheetTitle><SheetDescription>Details and next actions</SheetDescription></SheetHeader>{current && <FollowUpDetail key={current.id} item={current} mended={mendedId === current.id} embedded {...detailProps} />}</SheetContent></Sheet>
+    <Sheet open={mobileOpen && isMobile} onOpenChange={setMobileOpen}><SheetContent side="right" className="w-full overflow-auto p-6 sm:max-w-[480px]"><SheetHeader><SheetTitle>Follow-up</SheetTitle><SheetDescription>Details and next actions</SheetDescription></SheetHeader>{current && <FollowUpDetail item={current} mended={mendedId === current.id} embedded {...detailProps} />}</SheetContent></Sheet>
   </div>;
 }

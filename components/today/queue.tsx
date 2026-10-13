@@ -7,6 +7,7 @@ import { useMobileDetail } from "@/components/use-mobile-detail";
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { useFollowUpActions } from "@/components/focus-line/actions";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { FilterTabs, type FilterTab } from "@/components/focus-line/filter-tabs";
 import { LineActions, LineDay, LineNow, LineRow, spineEnds, type LineNode } from "@/components/focus-line/line";
 import { buildLineEntries, byDue, cairoFormat, gutterTime } from "@/components/focus-line/timeline";
@@ -102,7 +103,7 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
 
   const line = <div>
     <FilterTabs label="Filter follow-ups" className="mb-4" tabs={tabs.map(tab => ({ ...tab, count: counts[tab.key] }))} value={filter} onChange={selectFilter} />
-    {entries.length ? <ul>
+    <FadeSwap swapKey={filter}>{entries.length ? <ul>
       {entries.map((entry, index) => {
         const ends = spineEnds(index === 0, index === entries.length - 1);
         if (entry.kind === "now") return <LineNow key="now" clock={nowClock} ends={ends} />;
@@ -117,7 +118,7 @@ export function TodayQueue({ items: initialItems, now: serverNow }: { items: Fol
           mended={mendedId === item.id} leaving={leavingId === item.id} onStitchEnd={() => finish(item.id)}
           actions={<LineActions name={name} onResolve={() => void resolve(item)} onSnooze={minutes => void snooze(item, minutes)} />} />;
       })}
-    </ul> : <p className="t-meta py-12 text-center text-text-secondary">Nothing in this filter.</p>}
+    </ul> : <p className="t-meta py-12 text-center text-text-secondary">Nothing in this filter.</p>}</FadeSwap>
     {!mobile && <p className="t-caption mt-4 hidden items-center gap-4 text-text-muted [@media(hover:hover)_and_(pointer:fine)]:flex">
       <span className="inline-flex items-center gap-1.5"><Kbd keys={["J"]} /><Kbd keys={["K"]} />Move</span>
       <span className="inline-flex items-center gap-1.5"><Kbd keys={["E"]} />Resolve</span>

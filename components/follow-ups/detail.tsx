@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { FollowUp, FollowUpCommand } from "@/lib/follow-ups/types";
 import { wallTimeToUtc } from "@/lib/follow-ups/time";
 import { historyLabel } from "@/components/focus-line/actions";
+import { FadeSwap } from "@/components/focus-line/fade";
 import { Button } from "@/components/ui/button";
 import { SaveCaseDialog } from "@/components/cases/save-dialog";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,9 @@ export function FollowUpDetail({ item, now, mended, pickOpen, onPickOpenChange, 
   const [saving, setSaving] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const form = useRef<HTMLFormElement>(null);
+  // The panel stays mounted as the selection moves, so reset per-item state here instead of remounting.
+  const [shownId, setShownId] = useState(item.id);
+  if (shownId !== item.id) { setShownId(item.id); setHistory([]); setRescheduleAt(""); setEditing(false); setSaving(false); setConfirmCancel(false); }
   const closed = ["completed", "abandoned", "cancelled"].includes(item.status);
   const display = followUpDisplay(item, now);
   const phone = item.phoneNumber.replace(/\D/g, "").length === 10 ? formatPhone(item.phoneNumber) : item.phoneNumber;
@@ -71,6 +75,7 @@ export function FollowUpDetail({ item, now, mended, pickOpen, onPickOpenChange, 
 
   return <aside aria-label="Selected follow-up" className={cn("relative", !embedded && "mend-pane max-h-[calc(100dvh-3rem)] overflow-auto overscroll-contain rounded-[14px] bg-sheet p-6 shadow-[0_0_0_1px_var(--border),0_12px_32px_-20px_rgb(0_0_0/.18)]")}>
     {onClose && !embedded && <Button variant="ghost" size="icon-sm" onClick={onClose} aria-label="Close details" className="absolute top-3 right-3"><X /></Button>}
+    <FadeSwap swapKey={item.id} speed="panel">
     <div className="flex flex-wrap items-center gap-2">
       <StatusPill tone={display.tone}>{display.label}</StatusPill>
       {item.priority === "urgent" && !closed && <span className="t-caption rounded-full bg-status-overdue-tint px-2 py-0.5 !font-semibold text-status-overdue">Urgent</span>}
@@ -155,5 +160,6 @@ export function FollowUpDetail({ item, now, mended, pickOpen, onPickOpenChange, 
           {!closed && <Button variant="destructive" className="ml-auto" onClick={() => setConfirmCancel(true)}>Cancel follow-up</Button>}
         </>}
     </div>
+    </FadeSwap>
   </aside>;
 }

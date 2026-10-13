@@ -125,6 +125,10 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
 
 /* Detail pane: first selection only, slides in 8px */
 .mend-pane { transition:opacity 200ms var(--ease-out), translate 200ms var(--ease-out); @starting-style { opacity:0; translate:8px 0; } }
+/* Content swaps (filters, selection): the new content fades in, with no movement. Opacity only, so it stays under reduced motion. */
+.mend-fade-list { animation:mend-fade-in 140ms var(--ease-out); }
+.mend-fade-panel { animation:mend-fade-in 120ms var(--ease-out); }
+@keyframes mend-fade-in { from { opacity:.4; } }
 /* Selection indicator: one element slides and resizes to the active item. Placement without a slide is done inline with transition:none. */
 .mend-indicator { position:absolute; top:0; left:0; z-index:0; pointer-events:none; opacity:0; transition:transform 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out), opacity 150ms var(--ease-out); }
 /* Before the indicator is placed (server render, first paint), the active item draws its own highlight so nothing pops in. */
