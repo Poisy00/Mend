@@ -3,30 +3,48 @@
 @import "../vendor/shadcn-tailwind-4.13.0.css";
 
 :root {
-  --canvas:#f8f7f5; --surface:#fffefd; --surface-hover:#f2efed;
-  --text-primary:#1b1b18; --text-secondary:#686660; --text-muted:#77736e;
-  --border-subtle:#dedbd8; --focus-ring:#7c6590;
-  --document:#fffefd; --document-foreground:#282525;
-  --background:#f8f7f5; --foreground:#1b1b18; --card:#fffefd; --card-foreground:#1b1b18;
-  --popover:#fffefd; --popover-foreground:#1b1b18; --primary:#5b456f; --primary-foreground:#fff;
-  --secondary:#efedf0; --secondary-foreground:#322b38; --muted:#f1f0ed; --muted-foreground:#686660;
-  --accent:#eeeaf1; --accent-foreground:#49365b; --destructive:#aa343b; --border:#dedbd8;
-  --input:#d4d0d0; --ring:#7c6590; --radius:.625rem; --sidebar:#f3f1ee;
-  --sidebar-foreground:#292724; --sidebar-primary:#5b456f; --sidebar-primary-foreground:#fff;
-  --sidebar-accent:#e8e3eb; --sidebar-accent-foreground:#49365b; --sidebar-border:#dedbd8; --sidebar-ring:#7c6590;
+  /* legacy alias: login form and document textarea */
+  --font-geist-sans:"Schibsted Grotesk Variable", system-ui, sans-serif;
+  --canvas:#F1F2F4; --surface:#FFFFFF; --surface-hover:#F4F5F7; --popover:#FFFFFF; --sidebar:#F1F2F4; --document:#fffefd;
+  --text-primary:#16181D; --text-secondary:#5A606C; --text-muted:#6B717D; --document-foreground:#282525;
+  --primary:#4E3D8F; --primary-hover:#5E4CA3; --primary-foreground:#FFFFFF;
+  --accent:#EEEBF8; --accent-foreground:#3E2F78; --secondary:#EFF0F3; --secondary-foreground:#2A2D35; --muted:#EEF0F2;
+  --border:#E2E4E9; --control-edge:#8B909B; --ring:#4E3D8F; --destructive:#AA343B;
+  --status-overdue:#B4381F; --status-overdue-tint:#FBEAE4;
+  --status-due:#8A5A00; --status-due-tint:#F7EED8;
+  --status-scheduled:var(--accent-foreground); --status-scheduled-tint:var(--accent);
+  --status-done:#17714F; --status-done-tint:#E3F2EA;
+  --status-closed:var(--text-secondary); --status-closed-tint:var(--muted);
+  --shadow-press:inset 0 1px 0 rgba(255,255,255,.14), 0 1px 2px rgba(27,27,24,.18);
+  --shadow-card:0 1px 2px rgba(27,27,24,.025), 0 12px 36px rgba(27,27,24,.04);
+  --shadow-overlay:0 16px 42px -14px rgba(20,18,30,.3);
+  --shadow-document:0 0 0 1px rgba(0,0,0,.07), 0 10px 30px -26px rgba(0,0,0,.22);
+  --radius:.625rem;
+  /* Planes: the desk behind the sheet, and the raised sheet itself */
+  --desk:var(--sidebar); --sheet:var(--surface);
+  --sheet-shadow:0 0 0 1px rgb(27 27 24 / .06), 0 1px 2px rgb(27 27 24 / .04), 0 8px 24px -12px rgb(27 27 24 / .08);
+  --chip-shadow:0 0 0 1px rgb(27 27 24 / .07), 0 1px 2px rgb(27 27 24 / .06);
+  --radius-sheet:14px;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1); --ease-drawer:cubic-bezier(.32,.72,0,1);
+  --dur-press:120ms; --dur-quick:160ms; --dur-panel:240ms;
+  /* shadcn compatibility aliases — new code uses the Mend names above */
+  --background:var(--canvas); --foreground:var(--text-primary); --card:var(--surface); --card-foreground:var(--text-primary);
+  --popover-foreground:var(--text-primary); --muted-foreground:var(--text-secondary); --input:var(--border);
+  --border-subtle:var(--border); --focus-ring:var(--ring);
+  --sidebar-foreground:var(--text-primary); --sidebar-primary:var(--primary); --sidebar-primary-foreground:var(--primary-foreground);
+  --sidebar-accent:var(--accent); --sidebar-accent-foreground:var(--accent-foreground); --sidebar-border:var(--border); --sidebar-ring:var(--ring);
 }
 .dark {
-  --canvas:#17181b; --surface:#202126; --surface-hover:#2a292e;
-  --text-primary:#edebe6; --text-secondary:#aaa7a3; --text-muted:#aaa7a3;
-  --border-subtle:#3a3a3e; --focus-ring:#cbaee0;
-  --document:#fffefd; --document-foreground:#282525;
-  --background:#17181b; --foreground:#edebe6; --card:#202126; --card-foreground:#edebe6;
-  --popover:#25262c; --popover-foreground:#edebe6; --primary:#cbaee0; --primary-foreground:#241b2a;
-  --secondary:#302d35; --secondary-foreground:#edebe6; --muted:#25262b; --muted-foreground:#aaa7a3;
-  --accent:#3a3242; --accent-foreground:#e8d7f4; --destructive:#ed858b; --border:#3a3a3e;
-  --input:#4b4a50; --ring:#cbaee0; --sidebar:#1d1e22; --sidebar-foreground:#edebe6;
-  --sidebar-primary:#cbaee0; --sidebar-primary-foreground:#241b2a; --sidebar-accent:#332b39;
-  --sidebar-accent-foreground:#e8d7f4; --sidebar-border:#3a3a3e; --sidebar-ring:#cbaee0;
+  --canvas:#0E1014; --surface:#161920; --surface-hover:#1E222A; --popover:#1E222A; --sidebar:#0E1014; --document:#fffefd;
+  --text-primary:#E8EAEE; --text-secondary:#9BA1AD; --text-muted:#8A909C; --document-foreground:#282525;
+  --primary:#B4A6F3; --primary-hover:#C6BBF6; --primary-foreground:#191433;
+  --accent:#241F3C; --accent-foreground:#DCD4FB; --secondary:#22262E; --secondary-foreground:#E8EAEE; --muted:#1E222A;
+  --border:#262A33; --control-edge:#6E7480; --ring:#B4A6F3; --destructive:#ED858B;
+  --status-overdue:#F29A85; --status-overdue-tint:#3A211B;
+  --status-due:#E8C06E; --status-due-tint:#33291A;
+  --status-done:#7FD3AE; --status-done-tint:#18302A;
+  --sheet-shadow:0 0 0 1px rgb(255 255 255 / .06), 0 8px 24px -12px rgb(0 0 0 / .5);
+  --chip-shadow:0 0 0 1px rgb(255 255 255 / .08), 0 1px 2px rgb(0 0 0 / .4);
 }
 @theme inline {
   --color-background:var(--background); --color-foreground:var(--foreground);
@@ -42,23 +60,131 @@
   --color-sidebar-accent:var(--sidebar-accent); --color-sidebar-accent-foreground:var(--sidebar-accent-foreground);
   --color-sidebar-border:var(--sidebar-border); --color-sidebar-ring:var(--sidebar-ring);
   --radius-sm:calc(var(--radius) - 4px); --radius-md:calc(var(--radius) - 2px); --radius-lg:var(--radius); --radius-xl:calc(var(--radius) + 4px);
-  --font-sans:var(--font-geist-sans), Arial, sans-serif;
+  --font-sans:"Schibsted Grotesk Variable", system-ui, sans-serif;
+  --color-desk:var(--desk); --color-sheet:var(--sheet);
+  --color-canvas:var(--canvas); --color-surface:var(--surface); --color-surface-hover:var(--surface-hover);
+  --color-text-primary:var(--text-primary); --color-text-secondary:var(--text-secondary); --color-text-muted:var(--text-muted);
+  --color-primary-hover:var(--primary-hover); --color-control-edge:var(--control-edge);
+  --color-status-overdue:var(--status-overdue); --color-status-overdue-tint:var(--status-overdue-tint);
+  --color-status-due:var(--status-due); --color-status-due-tint:var(--status-due-tint);
+  --color-status-scheduled:var(--status-scheduled); --color-status-scheduled-tint:var(--status-scheduled-tint);
+  --color-status-done:var(--status-done); --color-status-done-tint:var(--status-done-tint);
+  --color-status-closed:var(--status-closed); --color-status-closed-tint:var(--status-closed-tint);
+  --radius-xs:4px; --radius-2xl:20px;
+  --shadow-press:var(--shadow-press); --shadow-card:var(--shadow-card); --shadow-overlay:var(--shadow-overlay); --shadow-document:var(--shadow-document);
+  --shadow-sheet:var(--sheet-shadow); --shadow-chip:var(--chip-shadow);
+  --ease-mend:var(--ease-out); --ease-out:var(--ease-out); --ease-drawer:var(--ease-drawer);
+  --font-mono:var(--font-geist-mono), ui-monospace, Menlo, monospace;
 }
+@custom-variant hover-fine { @media (hover: hover) and (pointer: fine) { &:hover { @slot; } } }
+@utility t-title { font-size:32px; line-height:1.12; font-weight:600; letter-spacing:-.025em; @media (max-width:639px){ font-size:26px; line-height:1.15; } }
+@utility t-heading { font-size:17px; line-height:24px; font-weight:600; letter-spacing:-.018em; }
+@utility t-label { font-size:14px; line-height:20px; font-weight:500; letter-spacing:-.006em; }
+@utility t-body { font-size:14px; line-height:20px; font-weight:400; }
+@utility t-body-lg { font-size:15px; line-height:22px; font-weight:400; letter-spacing:-.003em; }
+@utility t-meta { font-size:13px; line-height:18px; font-weight:450; }
+@utility t-caption { font-size:12px; line-height:16px; font-weight:450; letter-spacing:.005em; }
+@utility t-eyebrow { font-size:13px; line-height:18px; font-weight:500; letter-spacing:0; text-transform:none; }
+@utility t-id { font-family:inherit; font-size:12px; line-height:16px; font-weight:500; font-variant-numeric:tabular-nums; }
+@utility num { font-variant-numeric:tabular-nums; }
 html { color-scheme:light; }
 html.dark { color-scheme:dark; }
 .mend-logo { filter:brightness(0); }
 html.dark .mend-logo { filter:brightness(0) invert(1); }
-body { background:var(--canvas); color:var(--text-primary); font-family:var(--font-geist-sans), Arial, sans-serif; font-size:16px; -webkit-font-smoothing:antialiased; }
+body { background:var(--desk); color:var(--text-primary); font-family:"Schibsted Grotesk Variable", system-ui, sans-serif; font-size:14px; line-height:20px; font-feature-settings:"calt"; text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+h1, h2, h3 { text-wrap:balance; }
+p { text-wrap:pretty; }
 button, a { -webkit-tap-highlight-color:transparent; }
-:focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
-.mend-enter { animation:mend-enter 180ms cubic-bezier(.32,.72,0,1) both; }
-.rcc-template-reveal { display:grid; grid-template-rows:0fr; opacity:0; transform:translateY(-8px); transition:grid-template-rows 220ms cubic-bezier(.2,0,0,1), opacity 180ms ease, transform 220ms cubic-bezier(.2,0,0,1); }
-.rcc-template-reveal[data-open="true"] { grid-template-rows:1fr; opacity:1; transform:translateY(0); }
-textarea[data-treatment="document"] { min-height:28rem; border:0; border-radius:.75rem; background:var(--document); color:var(--document-foreground); padding:1.5rem; font:400 .875rem/1.55 var(--font-geist-sans),Arial,sans-serif; box-shadow:0 0 0 1px rgba(0,0,0,.07),0 10px 30px -26px rgba(0,0,0,.22); }
-textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focus-ring); outline-offset:2px; box-shadow:0 0 0 1px rgba(0,0,0,.07),0 10px 30px -26px rgba(0,0,0,.22); }
-@keyframes mend-enter { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+@layer base { :focus-visible { outline:2px solid var(--ring); outline-offset:2px; } }
+/* Shared checklist mark: hollow ring when unmet, iris check when met. Animates only on unmet to met. */
+.mend-check { position:relative; display:inline-block; width:16px; height:16px; flex:none; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1.5px var(--control-edge); }
+.mend-check[data-state="attempted"] { box-shadow:inset 0 0 0 1.5px var(--status-overdue); }
+.mend-check[data-state="met"] { background:var(--accent); box-shadow:inset 0 0 0 0 transparent; }
+.mend-check svg { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.mend-check path { fill:none; stroke:var(--primary); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1; opacity:0; }
+.mend-check[data-state="met"] path { stroke-dashoffset:0; opacity:1; }
+.mend-check[data-state="met"][data-animate="true"] { animation:mend-check-pop 220ms var(--ease-out); }
+.mend-check[data-state="met"][data-animate="true"] path { animation:mend-check-draw 220ms var(--ease-out); }
+@keyframes mend-check-pop { from { scale:.6; } }
+@keyframes mend-check-draw { from { stroke-dashoffset:1; } }
+textarea[data-treatment="document"] { min-height:28rem; border:0; border-radius:.75rem; background:var(--document); color:var(--document-foreground); padding:1.5rem; font:400 .875rem/1.55 var(--font-geist-sans),Arial,sans-serif; box-shadow:var(--shadow-document); }
+textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focus-ring); outline-offset:2px; box-shadow:var(--shadow-document); }
+.mend-stitch { position:relative; }
+.mend-stitch::after { content:""; position:absolute; left:0; right:0; bottom:0; height:2px; background:repeating-linear-gradient(90deg,var(--status-done) 0 6px,transparent 6px 10px); clip-path:inset(0 100% 0 0); opacity:0; animation:mend-stitch 900ms cubic-bezier(.23,1,.32,1) forwards; }
+@keyframes mend-stitch { 0%{clip-path:inset(0 100% 0 0);opacity:1} 55%{clip-path:inset(0);opacity:1} 100%{clip-path:inset(0);opacity:0} }
+
+/* Popovers, menus and tooltips grow from their trigger; Radix needs keyframes to delay unmount. */
+:is([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"]) { transform-origin:var(--radix-dropdown-menu-content-transform-origin); }
+[data-slot="popover-content"] { transform-origin:var(--radix-popover-content-transform-origin); }
+[data-slot="select-content"] { transform-origin:var(--radix-select-content-transform-origin); }
+[data-slot="tooltip-content"] { transform-origin:var(--radix-tooltip-content-transform-origin); }
+:is([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"], [data-slot="popover-content"], [data-slot="select-content"], [data-slot="tooltip-content"])[data-state="open"], :is([data-slot="tooltip-content"])[data-state="delayed-open"], :is([data-slot="tooltip-content"])[data-state="instant-open"] { animation:mend-pop-in 160ms var(--ease-out); }
+:is([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"], [data-slot="popover-content"], [data-slot="select-content"], [data-slot="tooltip-content"])[data-state="closed"] { animation:mend-pop-out 120ms var(--ease-out) forwards; }
+@keyframes mend-pop-in { from { opacity:0; scale:.97; } }
+@keyframes mend-pop-out { to { opacity:0; scale:.98; } }
+
+/* Detail pane: first selection only, slides in 8px */
+.mend-pane { transition:opacity 200ms var(--ease-out), translate 200ms var(--ease-out); @starting-style { opacity:0; translate:8px 0; } }
+/* Content swaps (filters, selection): the new content fades in, with no movement. Opacity only, so it stays under reduced motion. */
+.mend-fade-list { animation:mend-fade-in 140ms var(--ease-out); }
+.mend-fade-panel { animation:mend-fade-in 120ms var(--ease-out); }
+@keyframes mend-fade-in { from { opacity:.4; } }
+/* A new page enters over 200ms. Played only when the pathname changes. */
+.mend-page-enter { animation:mend-page-in 200ms var(--ease-out); }
+@keyframes mend-page-in { from { opacity:0; translate:0 6px; } }
+/* While a navigation is slow, the current page dims and a 2px iris line runs along the top of the sheet.
+   The 120ms delay is on the way in only, so a quick navigation shows neither. */
+.mend-main { transition:opacity 150ms var(--ease-out); }
+.mend-main[data-pending] { opacity:.6; transition-delay:120ms; }
+.mend-progress { position:absolute; inset:0 0 auto 0; z-index:5; height:2px; overflow:hidden; pointer-events:none; opacity:0; transition:opacity 150ms var(--ease-out); }
+.mend-progress::before { content:""; position:absolute; inset:0; width:40%; background:var(--primary); border-radius:2px; animation:mend-progress 1.1s var(--ease-in-out) infinite; }
+.mend-progress[data-pending] { opacity:1; transition-delay:120ms; }
+@keyframes mend-progress { from { transform:translateX(-100%); } to { transform:translateX(250%); } }
+/* Dialogs that opt in with .mend-dialog: overlay fades, the panel rises and scales in from its centre. */
+.mend-dialog-overlay { background:rgb(0 0 0 / .4); }
+.dark .mend-dialog-overlay { background:rgb(0 0 0 / .6); }
+.mend-dialog-overlay[data-state="open"] { animation:mend-fade-in-full 200ms var(--ease-out); }
+.mend-dialog-overlay[data-state="closed"] { animation:mend-fade-out 160ms var(--ease-out) forwards; }
+.mend-dialog { transform-origin:center; }
+.mend-dialog[data-state="open"] { animation:mend-dialog-in 220ms var(--ease-out); }
+.mend-dialog[data-state="closed"] { animation:mend-dialog-out 160ms var(--ease-out) forwards; }
+@keyframes mend-fade-in-full { from { opacity:0; } }
+@keyframes mend-fade-out { to { opacity:0; } }
+@keyframes mend-dialog-in { from { opacity:0; transform:translateY(8px) scale(.96); } }
+@keyframes mend-dialog-out { to { opacity:0; transform:translateY(8px) scale(.96); } }
+/* Selection indicator: one element slides and resizes to the active item. Placement without a slide is done inline with transition:none. */
+.mend-indicator { position:absolute; top:0; left:0; z-index:0; pointer-events:none; opacity:0; transition:transform 240ms var(--ease-out), width 240ms var(--ease-out), height 240ms var(--ease-out), opacity 150ms var(--ease-out); }
+/* Before the indicator is placed (server render, first paint), the active item draws its own highlight so nothing pops in. */
+[data-indicator-host]:not([data-indicator-ready]) [data-indicator-active] { background:var(--ind-bg, transparent); box-shadow:var(--ind-shadow, none); }
+/* Skeletons are static and only appear if loading is slow */
+.mend-skeleton-wrap { transition:opacity 150ms var(--ease-out) 300ms; @starting-style { opacity:0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-slot="skeleton"], .mend-enter { animation: none !important; }
+  .motion-move { transition-property:opacity, background-color, color, box-shadow !important; }
+  .mend-pane { translate:none; }
+  @keyframes mend-page-in { from { opacity:0; translate:0 0; } }
+  .mend-progress::before { width:100%; animation:none; }
+  @keyframes mend-dialog-in { from { opacity:0; transform:none; } }
+  @keyframes mend-dialog-out { to { opacity:0; transform:none; } }
+  .mend-indicator { transition:opacity 150ms var(--ease-out); }
+  @keyframes mend-pop-in { from { opacity:0; scale:1; } }
+  @keyframes mend-pop-out { to { opacity:0; scale:1; } }
+  [data-slot="skeleton"] { animation:none; }
+  .mend-stitch::after { animation-duration:600ms; }
+  .mend-check, .mend-check path { transition:background-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out), opacity 120ms var(--ease-out); }
+  .mend-check[data-state="met"][data-animate="true"], .mend-check[data-state="met"][data-animate="true"] path { animation:none; }
 }
-@media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; scroll-behavior:auto !important; } }
+
+/* Sign-in logo flight: a same-origin document navigation (sign in, sign out) morphs the wordmark between the login card and the shell.
+   Exactly one visible element carries the name: the desktop sidebar logo from 768px up, the mobile top-bar logo below it.
+   Client-side navigation is unaffected. Chromium 126+; other browsers simply navigate. */
+@view-transition { navigation: auto; }
+@media (min-width: 768px) { .mend-flight-desktop { view-transition-name: mend-wordmark; } }
+@media (max-width: 767px) { .mend-flight-mobile { view-transition-name: mend-wordmark; } }
+::view-transition-group(mend-wordmark) { animation-duration: 620ms; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+::view-transition-old(mend-wordmark), ::view-transition-new(mend-wordmark) { height: 100%; object-fit: contain; animation-duration: 620ms; animation-timing-function: cubic-bezier(.2,.8,.2,1); }
+::view-transition-old(root) { animation: 220ms var(--ease-out) both mend-vt-out; }
+::view-transition-new(root) { animation: 320ms var(--ease-out) 80ms both mend-vt-in; }
+@keyframes mend-vt-out { to { opacity:0; } }
+@keyframes mend-vt-in { from { opacity:0; } }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }

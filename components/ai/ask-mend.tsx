@@ -1,21 +1,29 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bot, Copy, Plus, Send, Trash2 } from "lucide-react";
+import { ArrowUp, History, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MendSelect } from "@/components/ui/mend-select";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MendLink } from "@/components/mend-link";
 
 type Message = { id:string; role:"user"|"assistant"; content:string };
 type Thread = { id:string; title:string; model:string|null };
 
-export function AskMend() {
+const suggestions = ["Summarise my overdue follow-ups", "Draft an expedite note", "What's my next shift?"];
+
+function MendMark() {
+  return <span aria-hidden="true" className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">M</span>;
+}
+
+export function AskMend({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const pathname=usePathname();
-  const [open,setOpen]=useState(false),[connected,setConnected]=useState(false);
+  const [connected,setConnected]=useState(false);
   const [threads,setThreads]=useState<Thread[]>([]),[threadId,setThreadId]=useState<string>();
   const [messages,setMessages]=useState<Message[]>([]),[models,setModels]=useState<string[]>([]),[model,setModel]=useState("");
   const [input,setInput]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");
-  const bottom=useRef<HTMLDivElement>(null);
+  const scroller=useRef<HTMLDivElement>(null),stick=useRef(true),composer=useRef<HTMLTextAreaElement>(null);
   const refresh=useCallback(async()=>{
     const [connectionResponse,threadsResponse]=await Promise.all([fetch("/api/ai/connection"),fetch("/api/ai/threads")]);
     if(!connectionResponse.ok||!threadsResponse.ok)throw new Error("Could not load Ask Mend");
@@ -28,13 +36,14 @@ export function AskMend() {
     }
   },[]);
   useEffect(()=>{if(!open)return;const timer=setTimeout(()=>{void refresh().catch(e=>setError(e.message));},0);return()=>clearTimeout(timer);},[open,refresh]);
-  useEffect(()=>{if(open)bottom.current?.scrollIntoView({behavior:"smooth"});},[messages,open]);
-  useEffect(()=>{const key=(event:KeyboardEvent)=>{if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==="j"){event.preventDefault();setOpen(value=>!value);}};window.addEventListener("keydown",key);return()=>window.removeEventListener("keydown",key);},[]);
+  // Follow the stream only while the reader is already near the bottom; never fight a manual scroll.
+  useEffect(()=>{const el=scroller.current;if(open&&el&&stick.current)el.scrollTop=el.scrollHeight;},[messages,open]);
+  useEffect(()=>{const el=composer.current;if(!el)return;el.style.height="auto";el.style.height=`${Math.min(el.scrollHeight,144)}px`;},[input,open]);
   async function selectThread(id:string){
     setError(""); const response=await fetch(`/api/ai/threads/${id}`);
     if(!response.ok){setError("Could not load conversation");return;}
     const thread=(await response.json() as {thread:{messages:Message[];model:string|null}}).thread;
-    setThreadId(id);setMessages(thread.messages);if(thread.model&&models.includes(thread.model))setModel(thread.model);
+    stick.current=true;setThreadId(id);setMessages(thread.messages);if(thread.model&&models.includes(thread.model))setModel(thread.model);
   }
   async function removeThread(id:string){
     const response=await fetch(`/api/ai/threads/${id}`,{method:"DELETE"});
@@ -44,7 +53,7 @@ export function AskMend() {
   }
   async function send(event:React.FormEvent){
     event.preventDefault();const value=input.trim();if(!value||busy||!connected||!model)return;
-    setInput("");setError("");setBusy(true);
+    setInput("");setError("");setBusy(true);stick.current=true;
     const assistantId=crypto.randomUUID();
     setMessages(items=>[...items,{id:crypto.randomUUID(),role:"user",content:value},{id:assistantId,role:"assistant",content:""}]);
     const segment=pathname.split("/").filter(Boolean);
@@ -64,19 +73,25 @@ export function AskMend() {
     }catch(e){setError(e instanceof Error?e.message:"Ask Mend could not respond");setMessages(items=>items.filter(item=>item.id!==assistantId));}
     finally{setBusy(false);}
   }
-  return <>
-    <Button variant="outline" size="sm" className="gap-2" onClick={()=>setOpen(true)}><Bot className="size-4"/>Ask Mend<span className="hidden text-xs text-muted-foreground lg:inline">⌘J</span></Button>
-    <Sheet open={open} onOpenChange={setOpen}><SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[520px]">
-      <SheetHeader className="border-b px-5 py-5"><SheetTitle className="flex items-center gap-2"><Bot className="size-5 text-primary"/>Ask Mend</SheetTitle><SheetDescription>Your workspace assistant</SheetDescription></SheetHeader>
-      <div className="flex items-center gap-2 border-b px-5 py-3"><Button size="sm" variant="outline" onClick={()=>{setThreadId(undefined);setMessages([]);setError("");}}><Plus className="size-4"/>New</Button>
-        <select aria-label="Model" value={model} disabled={!connected||busy} onChange={e=>setModel(e.target.value)} className="min-w-0 flex-1 rounded-md border bg-background px-3 py-2 text-sm"><option value="">Choose model</option>{models.map(item=><option key={item} value={item}>{item}</option>)}</select></div>
-      {threads.length>0&&<div className="flex gap-2 overflow-x-auto border-b px-5 py-2" aria-label="Recent conversations">{threads.map(item=><div key={item.id} className="flex shrink-0 items-center rounded-md border"><button type="button" onClick={()=>void selectThread(item.id)} className={`max-w-36 truncate px-3 py-2 text-xs ${threadId===item.id?"font-semibold text-primary":""}`} title={item.title}>{item.title}</button><button type="button" onClick={()=>void removeThread(item.id)} aria-label={`Delete ${item.title}`} className="p-2 text-muted-foreground hover:text-destructive"><Trash2 className="size-3"/></button></div>)}</div>}
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5" aria-live="polite">
-        {!connected?<div className="rounded-xl border bg-card p-5"><p className="font-medium">Connect ChatGPT to get started</p><p className="mt-2 text-sm text-muted-foreground">Use the authorization button in Settings, then return here.</p><Button asChild variant="outline" className="mt-4" onClick={()=>setOpen(false)}><MendLink href="/settings">Open Settings</MendLink></Button></div>:
-        messages.length===0?<div className="pt-10 text-center"><Bot className="mx-auto size-9 text-primary"/><h3 className="mt-4 font-semibold">What can I help with?</h3><p className="mt-2 text-sm text-muted-foreground">Ask about cases, follow-ups, or the RCC workflow.</p></div>:messages.map(item=><div key={item.id} className={`group rounded-xl p-4 text-sm whitespace-pre-wrap break-words ${item.role==="user"?"ml-8 bg-primary text-primary-foreground":"mr-5 border bg-card"}`}><p className="mb-2 text-xs font-semibold opacity-70">{item.role==="user"?"You":"Ask Mend"}</p>{item.content||"Thinking…"}{item.content&&<button type="button" className="mt-2 block opacity-60 hover:opacity-100" aria-label="Copy message" onClick={()=>void navigator.clipboard.writeText(item.content)}><Copy className="size-3.5"/></button>}</div>)}<div ref={bottom}/>
-      </div>
-      {error&&<p role="alert" className="mx-5 mb-2 text-sm text-destructive">{error}</p>}
-      <form onSubmit={send} className="border-t p-5"><label htmlFor="ask-mend-input" className="sr-only">Message Ask Mend</label><textarea id="ask-mend-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();e.currentTarget.form?.requestSubmit();}}} maxLength={8000} disabled={!connected||busy} placeholder="Ask Mend anything about your work…" rows={3} className="w-full resize-none rounded-lg border bg-background p-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/><div className="mt-2 flex items-center justify-between"><p className="text-xs text-muted-foreground">Shift + Enter for a new line</p><Button size="sm" disabled={!input.trim()||!model||!connected||busy}>{busy?"Working…":<>Send <Send className="size-3.5"/></>}</Button></div></form>
-    </SheetContent></Sheet>
-  </>;
+  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" className="w-full gap-0 border-0 bg-sheet p-0 shadow-overlay sm:max-w-[440px]">
+    <SheetHeader className="gap-0.5 px-5 pt-5 pb-4 pr-12"><SheetTitle className="t-heading">Ask Mend</SheetTitle><SheetDescription className="t-caption text-text-secondary">Powered by your ChatGPT account</SheetDescription></SheetHeader>
+    <div className="flex items-center gap-2 border-b border-border px-5 pb-3">
+      <MendSelect aria-label="Model" value={model} onValueChange={setModel} disabled={!connected||busy} options={models.map(item=>({value:item,label:item}))} placeholder="Choose model" className="h-8 flex-1 rounded-lg px-2.5 text-[13px] data-[size=default]:h-8" />
+      <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" disabled={threads.length===0}><History />Recent</Button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64">{threads.map(item=><div key={item.id} className="flex items-center gap-1"><DropdownMenuItem className="min-w-0 flex-1" onSelect={()=>void selectThread(item.id)}><span className={`truncate ${threadId===item.id?"font-medium text-primary":""}`}>{item.title}</span></DropdownMenuItem><button type="button" onClick={()=>void removeThread(item.id)} aria-label={`Delete ${item.title}`} className="grid size-8 shrink-0 place-items-center rounded-md text-text-muted outline-none hover-fine:text-destructive focus-visible:outline-2 focus-visible:outline-ring"><Trash2 className="size-3.5"/></button></div>)}</DropdownMenuContent></DropdownMenu>
+      <Button variant="ghost" size="sm" onClick={()=>{setThreadId(undefined);setMessages([]);setError("");}}><Plus />New</Button>
+    </div>
+    <div ref={scroller} onScroll={e=>{const el=e.currentTarget;stick.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5" aria-live="polite">
+      {!connected?<div className="py-16 text-center"><h3 className="t-heading">Ask Mend isn&apos;t connected</h3><p className="t-meta mt-1 text-text-secondary">Connect ChatGPT in Settings to use Ask Mend.</p><Button asChild variant="secondary" className="mt-4" onClick={()=>onOpenChange(false)}><MendLink href="/settings">Open Settings</MendLink></Button></div>:
+      messages.length===0?<div className="py-16 text-center"><h3 className="t-heading">What can I help with?</h3><p className="t-meta mt-1 text-text-secondary">Ask about your follow-ups, your shift or an RCC request.</p><div className="mt-4 flex flex-wrap justify-center gap-2">{suggestions.map(text=><Button key={text} variant="secondary" size="sm" onClick={()=>{setInput(text);composer.current?.focus();}}>{text}</Button>)}</div></div>:
+      messages.map(item=>item.role==="user"
+        ?<div key={item.id} className="flex justify-end"><p className="t-body max-w-[85%] rounded-[14px] rounded-br-[4px] bg-secondary px-3.5 py-2.5 whitespace-pre-wrap break-words text-secondary-foreground">{item.content}</p></div>
+        :<div key={item.id} className="flex gap-2.5"><MendMark /><p className="t-body min-w-0 flex-1 whitespace-pre-wrap break-words">{item.content||<span className="text-text-secondary">Thinking…</span>}</p></div>)}
+    </div>
+    {error&&<p role="alert" className="t-meta mx-5 mb-2 text-destructive">{error}</p>}
+    <form onSubmit={send} className="px-5 pb-5"><label htmlFor="ask-mend-input" className="sr-only">Message Ask Mend</label>
+      <div className="rounded-[12px] bg-secondary shadow-[inset_0_0_0_1px_transparent] focus-within:shadow-[inset_0_0_0_1px_var(--ring)]"><textarea ref={composer} id="ask-mend-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();e.currentTarget.form?.requestSubmit();}}} maxLength={8000} disabled={!connected||busy} placeholder="Ask Mend anything about your work…" rows={1} className="t-body block max-h-36 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 outline-none placeholder:text-text-muted"/>
+        <div className="flex items-center justify-end px-2 pb-2"><Button type="submit" size="icon-sm" aria-label="Send message" disabled={!input.trim()||!model||!connected||busy}><ArrowUp /></Button></div></div>
+      <p className="t-caption mt-2 text-text-secondary">Enter to send, Shift+Enter for a new line</p></form>
+  </SheetContent></Sheet>;
 }

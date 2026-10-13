@@ -1,28 +1,32 @@
+"use client"
+
+import { useSyncExternalStore } from "react"
 import { cn } from "@/lib/utils"
 
-function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
+const subscribe = () => () => {}
+const isMacSnapshot = () => {
+  const nav = navigator as Navigator & { userAgentData?: { platform?: string } }
+  return /mac|iphone|ipad/i.test(nav.userAgentData?.platform ?? navigator.platform)
+}
+
+/** `mod` resolves to ⌘ on Apple platforms and Ctrl elsewhere. Renders nothing until mounted. */
+function Kbd({ keys, className }: { keys: string[]; className?: string }) {
+  const mac = useSyncExternalStore<boolean | null>(subscribe, isMacSnapshot, () => null)
+  if (mac === null) return null
+  const labels = keys.map(key => (key === "mod" ? (mac ? "⌘" : "Ctrl") : key))
   return (
     <kbd
+      aria-hidden="true"
       data-slot="kbd"
       className={cn(
-        "pointer-events-none inline-flex h-5 w-fit min-w-5 items-center justify-center gap-1 rounded-sm bg-muted px-1 font-sans text-xs font-medium text-muted-foreground select-none",
-        "[&_svg:not([class*='size-'])]:size-3",
-        "[[data-slot=tooltip-content]_&]:bg-background/20 [[data-slot=tooltip-content]_&]:text-background dark:[[data-slot=tooltip-content]_&]:bg-background/10",
+        "inline-flex h-5 min-w-5 items-center justify-center rounded-[4px] bg-muted px-1.5 font-mono text-[11px] font-medium text-text-secondary select-none",
+        mac ? "gap-0" : "gap-0.5",
         className
       )}
-      {...props}
-    />
+    >
+      {labels.map((label, index) => <span key={index}>{label}</span>)}
+    </kbd>
   )
 }
 
-function KbdGroup({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <kbd
-      data-slot="kbd-group"
-      className={cn("inline-flex items-center gap-1", className)}
-      {...props}
-    />
-  )
-}
-
-export { Kbd, KbdGroup }
+export { Kbd }
