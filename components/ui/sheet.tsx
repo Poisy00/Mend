@@ -49,20 +49,16 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
-  instant = false,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
-  /** Opened from the keyboard: skip the animation. */
-  instant?: boolean
 }) {
   return (
     <SheetPortal>
-      <SheetOverlay data-instant={instant || undefined} />
+      <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
-        data-instant={instant || undefined}
         className={cn(
           "fixed z-50 flex flex-col gap-4 bg-sheet shadow-lg data-[state=closed]:animate-out data-[state=closed]:duration-200 data-[state=closed]:ease-[var(--ease-out)] data-[state=open]:animate-in data-[state=open]:duration-[260ms] data-[state=open]:ease-[var(--ease-drawer)]",
           side === "right" &&

@@ -129,7 +129,6 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
   const currentArea = areaFromPathname(pathname);
   const [open, setOpen] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
-  const [askInstant, setAskInstant] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [sessionExpired, setSessionExpired] = useState(false);
   const sentinel = useRef<HTMLDivElement>(null);
@@ -144,13 +143,13 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
 
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") { event.preventDefault(); setAskInstant(true); setAskOpen(value => !value); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "j") { event.preventDefault(); setAskOpen(value => !value); }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
   }, []);
 
-  const openAsk = () => { setAskInstant(false); setAskOpen(true); };
+  const openAsk = () => setAskOpen(true);
 
   useEffect(() => {
     let active = true;
@@ -228,7 +227,7 @@ export function MendShell({ children, user, schedule }: { children: React.ReactN
           <div className="flex min-h-0 flex-1 flex-col"><SidebarContent currentArea={currentArea} user={user} schedule={schedule} onAsk={openAsk} onNavigate={() => setOpen(false)} /></div>
         </SheetContent>
       </Sheet>
-      <AskMend open={askOpen} onOpenChange={setAskOpen} instant={askInstant} />
+      <AskMend open={askOpen} onOpenChange={setAskOpen} />
     </div>
   </TooltipProvider>;
 }
