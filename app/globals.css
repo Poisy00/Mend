@@ -96,8 +96,6 @@ h1, h2, h3 { text-wrap:balance; }
 p { text-wrap:pretty; }
 button, a { -webkit-tap-highlight-color:transparent; }
 :focus-visible { outline:2px solid var(--ring); outline-offset:2px; }
-.rcc-template-reveal { display:grid; grid-template-rows:0fr; opacity:0; transform:translateY(-8px); transition:grid-template-rows 200ms var(--ease-out), opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
-.rcc-template-reveal[data-open="true"] { grid-template-rows:1fr; opacity:1; transform:translateY(0); }
 /* Shared checklist mark: hollow ring when unmet, iris check when met. Animates only on unmet to met. */
 .mend-check { position:relative; display:inline-block; width:16px; height:16px; flex:none; border-radius:50%; background:transparent; box-shadow:inset 0 0 0 1.5px var(--control-edge); }
 .mend-check[data-state="attempted"] { box-shadow:inset 0 0 0 1.5px var(--status-overdue); }
@@ -137,7 +135,6 @@ textarea[data-treatment="document"]:focus-visible { outline:2px solid var(--focu
   @keyframes mend-pop-in { from { opacity:0; scale:1; } }
   @keyframes mend-pop-out { to { opacity:0; scale:1; } }
   [data-slot="skeleton"] { animation:none; }
-  .rcc-template-reveal { transform:none; transition-property:opacity; }
   .mend-stitch::after { animation-duration:600ms; }
   .mend-check, .mend-check path { transition:background-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out), opacity 120ms var(--ease-out); }
   .mend-check[data-state="met"][data-animate="true"], .mend-check[data-state="met"][data-animate="true"] path { animation:none; }
