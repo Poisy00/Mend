@@ -73,8 +73,8 @@ export function AskMend({ open, onOpenChange, instant = false }: { open: boolean
     }catch(e){setError(e instanceof Error?e.message:"Ask Mend could not respond");setMessages(items=>items.filter(item=>item.id!==assistantId));}
     finally{setBusy(false);}
   }
-  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" instant={instant} className="w-full gap-0 border-0 p-0 shadow-overlay sm:max-w-[440px]">
-    <SheetHeader className="gap-0.5 px-5 pt-5 pb-4 pr-12"><SheetTitle className="t-heading">Ask Mend</SheetTitle><SheetDescription className="t-caption text-text-secondary">Ask Mend · ChatGPT</SheetDescription></SheetHeader>
+  return <Sheet open={open} onOpenChange={onOpenChange}><SheetContent side="right" instant={instant} className="w-full gap-0 border-0 bg-sheet p-0 shadow-overlay sm:max-w-[440px]">
+    <SheetHeader className="gap-0.5 px-5 pt-5 pb-4 pr-12"><SheetTitle className="t-heading">Ask Mend</SheetTitle><SheetDescription className="t-caption text-text-secondary">Powered by your ChatGPT account</SheetDescription></SheetHeader>
     <div className="flex items-center gap-2 border-b border-border px-5 pb-3">
       <MendSelect aria-label="Model" value={model} onValueChange={setModel} disabled={!connected||busy} options={models.map(item=>({value:item,label:item}))} placeholder="Choose model" className="h-8 flex-1 rounded-lg px-2.5 text-[13px] data-[size=default]:h-8" />
       <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" disabled={threads.length===0}><History />Recent</Button></DropdownMenuTrigger>
@@ -82,16 +82,16 @@ export function AskMend({ open, onOpenChange, instant = false }: { open: boolean
       <Button variant="ghost" size="sm" onClick={()=>{setThreadId(undefined);setMessages([]);setError("");}}><Plus />New</Button>
     </div>
     <div ref={scroller} onScroll={e=>{const el=e.currentTarget;stick.current=el.scrollHeight-el.scrollTop-el.clientHeight<80;}} className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5" aria-live="polite">
-      {!connected?<div className="pt-10 text-center"><h3 className="t-heading">Ask Mend isn&apos;t connected</h3><p className="t-meta mt-1 text-text-secondary">Connect ChatGPT in Settings to use Ask Mend.</p><Button asChild variant="secondary" className="mt-4" onClick={()=>onOpenChange(false)}><MendLink href="/settings">Open Settings</MendLink></Button></div>:
-      messages.length===0?<div className="pt-10 text-center"><h3 className="t-heading">What can I help with?</h3><div className="mt-4 flex flex-wrap justify-center gap-2">{suggestions.map(text=><Button key={text} variant="secondary" size="sm" onClick={()=>{setInput(text);composer.current?.focus();}}>{text}</Button>)}</div></div>:
+      {!connected?<div className="py-16 text-center"><h3 className="t-heading">Ask Mend isn&apos;t connected</h3><p className="t-meta mt-1 text-text-secondary">Connect ChatGPT in Settings to use Ask Mend.</p><Button asChild variant="secondary" className="mt-4" onClick={()=>onOpenChange(false)}><MendLink href="/settings">Open Settings</MendLink></Button></div>:
+      messages.length===0?<div className="py-16 text-center"><h3 className="t-heading">What can I help with?</h3><p className="t-meta mt-1 text-text-secondary">Ask about your follow-ups, your shift or an RCC request.</p><div className="mt-4 flex flex-wrap justify-center gap-2">{suggestions.map(text=><Button key={text} variant="secondary" size="sm" onClick={()=>{setInput(text);composer.current?.focus();}}>{text}</Button>)}</div></div>:
       messages.map(item=>item.role==="user"
-        ?<div key={item.id} className="flex justify-end"><p className="t-body max-w-[85%] rounded-[14px] rounded-br-[4px] bg-accent px-3.5 py-2.5 whitespace-pre-wrap break-words text-accent-foreground">{item.content}</p></div>
+        ?<div key={item.id} className="flex justify-end"><p className="t-body max-w-[85%] rounded-[14px] rounded-br-[4px] bg-secondary px-3.5 py-2.5 whitespace-pre-wrap break-words text-secondary-foreground">{item.content}</p></div>
         :<div key={item.id} className="flex gap-2.5"><MendMark /><p className="t-body min-w-0 flex-1 whitespace-pre-wrap break-words">{item.content||<span className="text-text-secondary">Thinking…</span>}</p></div>)}
     </div>
     {error&&<p role="alert" className="t-meta mx-5 mb-2 text-destructive">{error}</p>}
     <form onSubmit={send} className="px-5 pb-5"><label htmlFor="ask-mend-input" className="sr-only">Message Ask Mend</label>
-      <div className="rounded-[12px] shadow-[inset_0_0_0_1px_var(--border)] focus-within:shadow-[inset_0_0_0_1px_var(--ring)]"><textarea ref={composer} id="ask-mend-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();e.currentTarget.form?.requestSubmit();}}} maxLength={8000} disabled={!connected||busy} placeholder="Ask Mend anything about your work…" rows={1} className="t-body block max-h-36 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 outline-none placeholder:text-text-muted"/>
+      <div className="rounded-[12px] bg-secondary shadow-[inset_0_0_0_1px_transparent] focus-within:shadow-[inset_0_0_0_1px_var(--ring)]"><textarea ref={composer} id="ask-mend-input" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();e.currentTarget.form?.requestSubmit();}}} maxLength={8000} disabled={!connected||busy} placeholder="Ask Mend anything about your work…" rows={1} className="t-body block max-h-36 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 outline-none placeholder:text-text-muted"/>
         <div className="flex items-center justify-end px-2 pb-2"><Button type="submit" size="icon-sm" aria-label="Send message" disabled={!input.trim()||!model||!connected||busy}><ArrowUp /></Button></div></div>
-      <p className="t-caption mt-2 text-text-secondary">Enter to send · Shift+Enter for a new line</p></form>
+      <p className="t-caption mt-2 text-text-secondary">Enter to send, Shift+Enter for a new line</p></form>
   </SheetContent></Sheet>;
 }
